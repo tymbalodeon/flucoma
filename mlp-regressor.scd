@@ -5,7 +5,7 @@
 };
 
 ~get_window = {
-	var name = "Chaos Synth";
+	var name = "MLP Regressor";
 	var bounds = Rect(10, 10, 840, 320);
 	Window(name, bounds).front;
 };
