@@ -36,10 +36,10 @@
 		parameters.setn(0, multi_slider.value);
 	};
 	MultiSliderView(parent, bounds)
-	.elasticMode_(1)
-	.isFilled_(1)
-	.action_(action)
-	.value_(0.5.dup(10))
+		.elasticMode_(1)
+		.isFilled_(1)
+		.action_(action)
+		.value_(0.5.dup(10))
 };
 
 ~get_x_y_buffer = {
