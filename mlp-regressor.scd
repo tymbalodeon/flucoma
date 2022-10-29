@@ -23,17 +23,17 @@
 	)
 };
 
-~get_parameters = {
+~get_synth_params_buffer = {
 	var num_frames = 10;
 	Buffer.alloc(s, num_frames)
 };
 
 ~get_multi_slider = {
-	arg parent, parameters;
+	arg parent, synth_params_buffer;
 	var bounds = Rect(10, 10, 400, 300);
 	var action = {
 		arg multi_slider;
-		parameters.setn(0, multi_slider.value);
+		synth_params_buffer.setn(0, multi_slider.value);
 	};
 	MultiSliderView(parent, bounds)
 		.elasticMode_(1)
@@ -67,29 +67,30 @@
 };
 
 ~set_add_points_button = {
-	arg parent, state, x_y_data, x_y_buffer, parameter_data, parameters;
+	arg parent, state, x_y_data,
+		x_y_buffer, synth_params, synth_params_buffer;
 	var bounds = Rect(730, 10, 100, 20);
 	var states = [["Add Points"]];
 	var action = {
 		var id = "point-%".format(state[\counter]);
 		x_y_data.addPoint(id, x_y_buffer);
-		parameter_data.addPoint(id, parameters);
+		synth_params.addPoint(id, synth_params_buffer);
 		state[\counter] = state[\counter] + 1;
 		x_y_data.print;
-		parameter_data.print;
+		synth_params.print;
 	};
 	~set_button.value(parent, bounds, states, action)
 };
 
 ~set_save_data_button = {
-	arg parent, x_y_data, parameter_data;
+	arg parent, x_y_data, synth_params;
 	var bounds = Rect(730, 40, 100, 20);
 	var states = [["Save Data"]];
 	var action = {
 		var ok_func = {
 			arg folder;
 			x_y_data.write(folder +/+ "x-y-data.json");
-			parameter_data.write(folder +/+ "parameter-data.json");
+			synth_params.write(folder +/+ "synth-params.json");
 		};
 		FileDialog(
 			ok_func,
@@ -103,14 +104,14 @@
 };
 
 ~set_load_data_button = {
-	arg parent, x_y_data, parameter_data;
+	arg parent, x_y_data, synth_params;
 	var bounds = Rect(730, 70, 100, 20);
 	var states = [["Load Data"]];
 	var action = {
 		var ok_func = {
 			arg folder;
 			x_y_data.write(folder +/+ "x-y-data.json");
-			parameter_data.write(folder +/+ "parameter-data.json");
+			synth_params.write(folder +/+ "synth-params.json");
 		};
 		FileDialog(
 			ok_func,
@@ -123,7 +124,7 @@
 };
 
 ~set_train_button = {
-	arg parent, mlp_regressor, x_y_data, parameter_data;
+	arg parent, mlp_regressor, x_y_data, synth_params;
 	var bounds = Rect(730, 100, 100, 20);
 	var states = [["Train"]];
 	var action = {
@@ -131,7 +132,7 @@
 			arg loss;
 			loss.postln;
 		};
-		mlp_regressor.fit(x_y_data, parameter_data, post_loss);
+		mlp_regressor.fit(x_y_data, synth_params, post_loss);
 	};
 	~set_button.value(parent, bounds, states, action)
 };
@@ -181,18 +182,18 @@
 
 ~set_buttons = {
 	arg window, state, x_y_data, x_y_buffer,
-	    parameter_data, mlp_regressor, parameters, synth;
+	    synth_params, mlp_regressor, synth_params_buffer, synth;
 	~set_add_points_button.value(
 		window,
 		state,
 		x_y_data,
 		x_y_buffer,
-		parameter_data,
-		parameters
+		synth_params,
+		synth_params_buffer
 	);
-	~set_save_data_button.value(window, x_y_data, parameter_data);
-	~set_load_data_button.value(window, x_y_data, parameter_data);
-	~set_train_button.value(window, mlp_regressor, x_y_data, parameter_data);
+	~set_save_data_button.value(window, x_y_data, synth_params);
+	~set_load_data_button.value(window, x_y_data, synth_params);
+	~set_train_button.value(window, mlp_regressor, x_y_data, synth_params);
 	~set_save_mlp_button.value(window, mlp_regressor);
 	~set_load_mlp_button.value(window, mlp_regressor);
 	~set_predicting_button.value(window, synth);
@@ -229,10 +230,10 @@
 };
 
 ~synth = {
-	arg x_y_buffer, mlp_regressor, parameters, predicting = 0;
+	arg x_y_buffer, mlp_regressor, synth_params_buffer, predicting = 0;
 	var x_y = FluidBufToKr.kr(x_y_buffer);
 	var trigger = Mix(Changed.kr(x_y));
-	var value = FluidBufToKr.kr(parameters);
+	var value = FluidBufToKr.kr(synth_params_buffer);
 	var feed_1 = LocalIn.ar(2)[0];
 	var feed_2 = LocalIn.ar(2)[1];
 	var loudness_1 = ~get_loudness.value(feed_1);
@@ -242,7 +243,7 @@
 	var osc_1 = ~get_moog_ff.value(feed_1, base_1, value, loudness_1, 0, 1, 2, 3, 4);
 	var osc_2 = ~get_moog_ff.value(feed_2, base_2, value, loudness_2, 5, 6, 7, 8, 9);
 	var signals = [osc_1, osc_2];
-	mlp_regressor.kr(trigger * predicting, x_y_buffer, parameters);
+	mlp_regressor.kr(trigger * predicting, x_y_buffer, synth_params_buffer);
 	SendReply.kr(
 		trig: Mix(Changed.kr(value)),
 		cmdName: "/paramsChanged",
@@ -250,11 +251,6 @@
 	);
 	Out.ar(0, LeakDC.ar(signals, mul: 0.1));
 	LocalOut.ar(signals);
-};
-
-~play_synth = {
-    arg synth;
-    {synth}.play;
 };
 
 ~send_params_changed_message = {
@@ -270,27 +266,27 @@
 
 ~start_mlp_regressor = {
 	var window = ~get_window.value;
-	var parameters = ~get_parameters.value;
-	var parameter_data = FluidDataSet(s);
-	var mlp_regressor = ~get_mlp_regressor.value;
-	var multi_slider = ~get_multi_slider.value(window, parameters);
+	var synth_params_buffer = ~get_synth_params_buffer.value;
+	var multi_slider = ~get_multi_slider.value(window, synth_params_buffer);
 	var x_y_buffer = ~get_x_y_buffer.value;
 	var x_y_slider = ~get_x_y_slider.value(window, x_y_buffer);
-	var state = ~get_state.value;
+	var synth_params = FluidDataSet(s);
 	var x_y_data = FluidDataSet(s);
-	var synth = ~synth.value(x_y_buffer, mlp_regressor, parameters);
+	var mlp_regressor = ~get_mlp_regressor.value;
+	var synth = ~synth.value(x_y_buffer, mlp_regressor, synth_params_buffer);
+	var state = ~get_state.value;
 	~set_buttons.value(
 		window,
 		state,
 		x_y_data,
 		x_y_buffer,
-		parameter_data,
+		synth_params,
 		mlp_regressor,
-		parameters,
+		synth_params_buffer,
 		synth
 	);
 	s.sync;
-	~play_synth.value(synth);
+	{synth}.play;
 	~send_params_changed_message.value(multi_slider);
 };
 
