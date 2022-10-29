@@ -73,7 +73,7 @@
 	var bounds = Rect(730, 10, 100, 20);
 	var states = [["Add Points"]];
 	var add_point = {
-		var point = "point-%".format(state[\counter]);
+		var point = "point %".format(state[\counter]);
 		x_y_data.addPoint(point, x_y_buffer);
 		synth_data.addPoint(point, synth_buffer);
 		state[\counter] = state[\counter] + 1;
@@ -88,7 +88,7 @@
 	{
 		arg folder;
 		x_y_data.write(folder +/+ "x-y-data.json");
-		synth_data.write(folder +/+ "synth-params.json");
+		synth_data.write(folder +/+ "synth-data.json");
 	};
 };
 
@@ -152,7 +152,7 @@
 			};
 			mlp_regressor.write(path);
 		};
-		Dialog.savePanel(write_json_data);
+        Dialog.savePanel(write_json_data, path: "mlp-regressor.json");
 	};
 	~set_button.value(parent, bounds, states, save_mlp);
 };
@@ -177,7 +177,6 @@
 	var states = [["Not Predicting"], ["Predicting"]];
 	var set_state = {
 		arg button;
-        button.value.postln;
 		synth.set(\predicting, button.value);
 	};
 	~set_button.value(parent, bounds, states, set_state);
@@ -252,7 +251,7 @@
 		mlp_regressor.kr(trigger * predicting, x_y_buffer, synth_buffer);
 		SendReply.kr(
 			trig: Mix(Changed.kr(value)),
-			cmdName: "/paramsChanged",
+			cmdName: "/params_changed",
 			values: value
 		);
 		Out.ar(0, LeakDC.ar(signals, mul: 0.1));
@@ -268,7 +267,7 @@
 			synth_slider.value_(message[3..]);
 		};
 	};
-	OSCdef(\paramsChanged, func, "/paramsChanged");
+	OSCdef(\params_changed, func, "/params_changed");
 };
 
 ~start_mlp_regressor = {
