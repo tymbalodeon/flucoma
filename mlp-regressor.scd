@@ -83,21 +83,16 @@
 	~set_button.value(parent, bounds, states, add_point);
 };
 
-~write_json_data = {
-	arg x_y_data, synth_data;
-	{
-		arg folder;
-		x_y_data.write(folder +/+ "x-y-data.json");
-		synth_data.write(folder +/+ "synth-data.json");
-	};
-};
-
 ~set_save_data_button = {
 	arg parent, x_y_data, synth_data;
 	var bounds = Rect(730, 40, 100, 20);
 	var states = [["Save Data"]];
 	var save_data = {
-		var write_json_data = ~write_json_data.value(x_y_data, synth_data);
+		var write_json_data = {
+			arg folder;
+			x_y_data.write(folder +/+ "x-y-data.json");
+			synth_data.write(folder +/+ "synth-data.json");
+		};
 		FileDialog(
 			write_json_data,
 			cancelFunc: {},
@@ -114,7 +109,11 @@
 	var bounds = Rect(730, 70, 100, 20);
 	var states = [["Load Data"]];
 	var load_data = {
-		var write_json_data = ~write_json_data.value(x_y_data, synth_data);
+		var write_json_data = {
+			arg folder;
+			x_y_data.read(folder +/+ "x-y-data.json");
+			synth_data.read(folder +/+ "synth-data.json");
+		};
 		FileDialog(
 			write_json_data,
 			fileMode: 2,
