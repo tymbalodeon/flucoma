@@ -258,15 +258,15 @@
     }.play;
 };
 
-~send_params_changed_message = {
+~set_params_changed_action = {
 	arg synth_slider;
-	var func = {
+	var set_synth_slider_value = {
 		arg message;
 		defer {
 			synth_slider.value_(message[3..]);
 		};
 	};
-	OSCdef(\params_changed, func, "/params_changed");
+	OSCdef(\params_changed, set_synth_slider_value, "/params_changed");
 };
 
 ~start_mlp_regressor = {
@@ -290,7 +290,7 @@
 		synth_buffer,
 		synth
 	);
-	~send_params_changed_message.value(synth_slider);
+	~set_params_changed_action.value(synth_slider);
 };
 
 s.waitForBoot {
