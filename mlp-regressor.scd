@@ -50,11 +50,11 @@
 ~get_x_y_slider = {
 	arg parent, x_y_buffer;
 	var bounds = Rect(420, 10, 300, 300);
-	var action = {
-		arg view;
-		x_y_buffer.setn(0, [view.x, view.y]);
+	var set_x_y_values = {
+		arg slider;
+		x_y_buffer.setn(0, [slider.x, slider.y]);
 	};
-	Slider2D(parent, bounds).action_(action)
+	Slider2D(parent, bounds).action_(set_x_y_values)
 };
 
 ~get_state = {
