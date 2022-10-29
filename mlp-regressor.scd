@@ -131,7 +131,7 @@
 	var train = {
 		var post_loss = {
 			arg loss;
-			loss.postln;
+			"Training loss: %".format(loss).postln;
 		};
 		mlp_regressor.fit(x_y_data, synth_data, post_loss);
 	};
