@@ -86,12 +86,12 @@
 ~get_x_y_data_json_file = {
 	arg folder;
 	folder +/+ "x-y-data.json";
-}
+};
 
 ~get_synth_data_json_file = {
 	arg folder;
 	folder +/+ "synth-data.json";
-}
+};
 
 ~set_save_data_button = {
 	arg parent, x_y_data, synth_data;
@@ -310,5 +310,5 @@
 s.waitForBoot {
 	~reset_windows.value;
 	~start_mlp_regressor.value;
-}
+};
 )
