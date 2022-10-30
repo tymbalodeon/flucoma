@@ -51,13 +51,14 @@ var load_audio = {
         timbre_data.addPoint(id, mfcc_buffer);
         labels.addLabel(id, label);
         state[\counter] = state[\counter] + 1;
+        id;
     };
 
     ~get_neural_network = {
         var activation = FluidMLPRegressor.sigmoid;
         ~neural_network = FluidMLPClassifier(
             s,
-            hidden: [5],
+            hiddenLayers: [5],
             activation: activation,
             maxIter: 1000,
             learnRate: 0.1,
@@ -96,7 +97,7 @@ var load_audio = {
             arg audio_buffer, mfcc_buffer, neural_network, predictions;
             {
                 var audio = PlayBuf.ar(1, audio_buffer, BufRateScale.ir(audio_buffer), doneAction: 2);
-                var mfcc = FluidMFCC.kr(audio, ~nmfccs, startCoeff: 1, maxNumCoeffs: ~nmfccs);
+                var mfcc = FluidMFCC.kr(audio, ~number_of_coefficients, startCoeff: 1, maxNumCoeffs: ~number_of_coefficients);
                 var loudness = FluidLoudness.kr(audio)[0];
                 var threshold = -40;
                 var is_predicting = loudness >= threshold;
@@ -131,7 +132,23 @@ var load_audio = {
     ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
     ~timbre_data = FluidDataSet(s);
     ~labels = FluidLabelSet(s);
-    ~counter = Dictionary.newFrom([\counter, 0])
+    ~state = Dictionary.newFrom([\counter, 0])
+
+	~reset = {
+		~state[\counter] = 0;
+		~timbre_data.clear;
+		~mfcc_buffer.clear;
+		~labels.clear;
+	};
+
+	~train =  {
+		~neural_network = ~get_neural_network.value;
+		20.do {
+			~train_neural_network.value(~neural_network);
+
+		};
+	};
+
 };
 
 s.waitForBoot {
@@ -139,14 +156,19 @@ s.waitForBoot {
 };
 )
 
-~analyze_and_play.value(~trombone_training_audio);
-~add_point.value("trombone");
+~reset.value;
 
-~analyze_and_play.value(~oboe_training_audio);
-~add_point.value("oboe");
+~analyze_and_play.value(~trombone_training_audio, ~number_of_coefficients, ~mfcc_buffer);
+~add_point.value(~state, ~timbre_data, ~mfcc_buffer, ~labels, "trombone");
 
-~make_predictions.value(~trombone_testing_audio);
-~make_predictions.value(~oboe_testing_audio);
+~analyze_and_play.value(~oboe_training_audio, ~number_of_coefficients, ~mfcc_buffer);
+~add_point.value(~state, ~timbre_data, ~mfcc_buffer, ~labels, "oboe");
 
-~analyze_and_play.value(~trombone_testing_audio);
-~analyze_and_play.value(~oboe_testing_audio);
+
+~train.value;
+
+~make_predictions.value(~trombone_testing_audio, ~mfcc_buffer, ~neural_network);
+~make_predictions.value(~oboe_testing_audio, ~mfcc_buffer, ~neural_network);
+
+~analyze_and_play.value(~trombone_testing_audio, ~number_of_coefficients, ~mfcc_buffer);
+~analyze_and_play.value(~oboe_testing_audio, ~number_of_coefficients, ~mfcc_buffer);
