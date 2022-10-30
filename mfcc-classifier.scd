@@ -47,11 +47,10 @@ var load_audio = {
 
     ~add_point = {
         arg state, timbre_data, mfcc_buffer, labels, label;
-        var counter = state[\counter];
-        var id = "sample %".format(counter);
+        var id = "sample %".format(state[\counter]);
         timbre_data.addPoint(id, mfcc_buffer);
         labels.addLabel(id, label);
-        counter = counter + 1;
+        state[\counter] = state[\counter] + 1;
     };
 
     ~get_neural_network = {
@@ -132,7 +131,7 @@ var load_audio = {
     ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
     ~timbre_data = FluidDataSet(s);
     ~labels = FluidLabelSet(s);
-    ~counter = Dictionary([\counter, 0])
+    ~counter = Dictionary.newFrom([\counter, 0])
 };
 
 s.waitForBoot {
