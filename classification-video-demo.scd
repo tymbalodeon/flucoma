@@ -1,24 +1,27 @@
+~split_frame = 1783040;
+
 ~load_audio_file = {
 	arg filename, start_frame = 0, num_frames = -1;
 	var path = FluidFilesPath(filename);
 	Buffer.read(s, path, start_frame, num_frames);
 };
 
-~split_audio_file = {
-	arg filename, split_frame = 1783040;
-	var first_half = ~load_audio_file.value(filename, num_frames: split_frame);
-	var second_half = ~load_audio_file.value(filename, start_frame: split_frame);
-	[first_half, second_half];
-};
+~get_training_audio = {
+	arg filename
+	~load_audio_file.value(filename, num_frames: ~split_frame);
+}
+
+~get_testing_audio = {
+	arg filename
+	~load_audio_file.value(filename, start_frame: ~split_frame);
+}
 
 ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
 ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
-~trombone_files = ~split_audio_file.value(~trombone_file);
-~trombone_training_file = ~trombone_files[0];
-~trombone_testing_file = ~trombone_files[1];
-~oboe_files = ~split_audio_file.value(~oboe_file);
-~oboe_training_file = ~oboe_files[0];
-~oboe_testing_file = ~oboe_files[1];
+~trombone_training_audio = ~get_training_audio.value(~trombone_file);
+~trombone_testing_audio = ~get_testing_audio.value(~trombone_file);
+~oboe_training_audio = ~get_training_audio.value(~oboe_file);
+~oboe_testing_audio = ~get_testing_audio.value(~oboe_file);
 
 (
 ~num_coeffs = 13;
