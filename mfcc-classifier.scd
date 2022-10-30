@@ -134,20 +134,21 @@ var load_audio = {
     ~labels = FluidLabelSet(s);
     ~state = Dictionary.newFrom([\counter, 0])
 
-	~reset = {
-		~state[\counter] = 0;
-		~timbre_data.clear;
-		~mfcc_buffer.clear;
-		~labels.clear;
-	};
+    ~reset = {
+        ~state[\counter] = 0;
+        [~timbre_data, ~mfcc_buffer, ~labels].do {
+            arg data;
+            data.clear;
+        }
+    };
 
-	~train =  {
-		~neural_network = ~get_neural_network.value;
-		20.do {
-			~train_neural_network.value(~neural_network);
+    ~train =  {
+        ~neural_network = ~get_neural_network.value;
+        20.do {
+            ~train_neural_network.value(~neural_network);
 
-		};
-	};
+        };
+    };
 
 };
 
