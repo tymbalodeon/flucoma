@@ -89,7 +89,7 @@ var load_audio = {
             var post_message = {
                 arg message;
                 message[3].postln;
-            }
+            };
             OSCdef(\predictions, post_message, "/prediction");
         };
 
@@ -108,7 +108,7 @@ var load_audio = {
                 SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
                 audio.dup;
             }.play;
-        }
+        };
 
         var predictions = get_predictions_buffer.value;
         set_prediction_action.value;
@@ -120,7 +120,7 @@ var load_audio = {
         var post_label = {
             arg label;
             label.postln;
-        }
+        };
         neural_network.predictPoint(mfcc_buffer, post_label);
     };
 
