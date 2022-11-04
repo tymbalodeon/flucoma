@@ -146,10 +146,8 @@ var load_audio = {
         ~neural_network = ~get_neural_network.value;
         20.do {
             ~train_neural_network.value(~neural_network);
-
         };
     };
-
 };
 
 s.waitForBoot {
