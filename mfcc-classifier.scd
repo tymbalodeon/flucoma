@@ -4,6 +4,7 @@
 ~split_frame = 1783040;
 ~number_of_coefficients = 13;
 ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
+~state = Dictionary.newFrom([\counter, 0]);
 
 ~load_audio_file = {
     arg filename, start_frame = 0, num_frames = -1;
@@ -32,8 +33,8 @@
 };
 
 ~analyze_and_play = {
-    arg audio_buffer, number_of_coefficients, mfcc_buffer;
-    {
+    arg audio_buffer, number_of_coefficients, mfcc_buffer, instrument_name;
+    ~state[instrument_name] = {
         var audio = PlayBuf.ar(
             numChannels: 1,
             bufnum: audio_buffer,
@@ -49,6 +50,11 @@
         audio.dup;
     }.play;
 };
+
+~stop_playing = {
+    arg instrument_name;
+    ~state[instrument_name].stop;
+}
 
 ~add_point = {
     arg state, timbre_data, mfcc_buffer, labels, label;
@@ -101,15 +107,33 @@
     var play_prediction_synth = {
         arg audio_buffer, mfcc_buffer, neural_network, predictions;
         {
-            var audio = PlayBuf.ar(1, audio_buffer, BufRateScale.ir(audio_buffer), doneAction: 2);
-            var mfcc = FluidMFCC.kr(audio, ~number_of_coefficients, startCoeff: 1, maxNumCoeffs: ~number_of_coefficients);
+            var audio = PlayBuf.ar(
+                1,
+                audio_buffer,
+                BufRateScale.ir(audio_buffer),
+                doneAction: 2
+            );
+            var mfcc = FluidMFCC.kr(
+                audio,
+                ~number_of_coefficients,
+                startCoeff: 1,
+                maxNumCoeffs: ~number_of_coefficients
+            );
             var loudness = FluidLoudness.kr(audio)[0];
             var threshold = -40;
             var is_predicting = loudness >= threshold;
             var trigger = Impulse.kr(30);
             FluidKrToBuf.kr(mfcc, mfcc_buffer);
-            neural_network.kr(trigger * is_predicting, mfcc_buffer, predictions);
-            SendReply.kr(trigger * is_predicting, "/prediction", FluidBufToKr.kr(predictions));
+            neural_network.kr(
+                trigger * is_predicting,
+                mfcc_buffer,
+                predictions
+            );
+            SendReply.kr(
+                trigger * is_predicting,
+                "/prediction",
+                FluidBufToKr.kr(predictions)
+            );
             SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
             audio.dup;
         }.play;
@@ -139,7 +163,6 @@
 ~load_audio = {
     ~timbre_data = FluidDataSet(s);
     ~labels = FluidLabelSet(s);
-    ~state = Dictionary.newFrom([\counter, 0]);
 
     ~reset = {
         ~state[\counter] = 0;
@@ -174,16 +197,25 @@
 };
 
 ~set_play_button = {
-    arg parent, audio_buffer, bounds;
+    arg parent, audio_buffer, instrument_name, bounds;
     var states = [["Play"],["Stop"]];
     var analyze_and_play = {
         ~analyze_and_play.value(
             audio_buffer,
             ~number_of_coefficients,
-            ~mfcc_buffer
+            ~mfcc_buffer,
+            instrument_name
         );
     };
     ~set_button.value(parent, bounds, states, analyze_and_play);
+};
+
+~reset = {
+    ~state[\counter] = 0;
+    [~timbre_data, ~mfcc_buffer, ~labels].do {
+        arg data;
+        data.clear;
+    }
 };
 
 ~get_window = {
@@ -200,8 +232,30 @@
         label,
         bounds: Rect(50, 50, 100, 20)
     );
-    ~set_play_button.value(window, ~trombone_training_audio, bounds: Rect(50, 100, 100, 20));
-    ~set_play_button.value(window, ~oboe_training_audio, bounds: Rect(50, 150, 100, 20));
+    ~set_play_button.value(
+        window,
+        ~trombone_training_audio,
+        \trombone,
+        bounds: Rect(50, 100, 100, 20)
+    );
+    ~set_play_button.value(
+        window,
+        ~oboe_training_audio,
+        \oboe,
+        bounds: Rect(50, 150, 100, 20)
+    );
+    ~set_button.value(
+        window,
+        bounds: Rect(50, 200, 100, 20),
+        [["Reset"]],
+        ~reset
+    );
+    ~set_button.value(
+        window,
+        bounds: Rect(50, 200, 100, 20),
+        [["Train"]],
+        ~train
+    );
 };
 
 s.waitForBoot {
@@ -218,7 +272,6 @@ s.waitForBoot {
 
 ~analyze_and_play.value(~oboe_training_audio, ~number_of_coefficients, ~mfcc_buffer);
 ~add_point.value(~state, ~timbre_data, ~mfcc_buffer, ~labels, "oboe");
-
 
 ~train.value;
 
