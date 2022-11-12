@@ -1,11 +1,15 @@
 (
+~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
+~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
+~split_frame = 1783040;
+~number_of_coefficients = 13;
+~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
+
 ~load_audio_file = {
     arg filename, start_frame = 0, num_frames = -1;
     var path = FluidFilesPath(filename);
     Buffer.read(s, path, start_frame, num_frames);
 };
-
-~split_frame = 1783040;
 
 ~get_training_audio = {
     arg filename;
@@ -17,8 +21,10 @@
     ~load_audio_file.value(filename, start_frame: ~split_frame);
 };
 
-~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
-~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
+~trombone_training_audio = ~get_training_audio.value(~trombone_file);
+~trombone_testing_audio = ~get_testing_audio.value(~trombone_file);
+~oboe_training_audio = ~get_training_audio.value(~oboe_file);
+~oboe_testing_audio = ~get_testing_audio.value(~oboe_file);
 
 ~display_waveform = {
     arg audio;
@@ -131,12 +137,6 @@
 };
 
 ~load_audio = {
-    ~trombone_training_audio = ~get_training_audio.value(~trombone_file);
-    ~trombone_testing_audio = ~get_testing_audio.value(~trombone_file);
-    ~oboe_training_audio = ~get_training_audio.value(~oboe_file);
-    ~oboe_testing_audio = ~get_testing_audio.value(~oboe_file);
-    ~number_of_coefficients = 13;
-    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
     ~timbre_data = FluidDataSet(s);
     ~labels = FluidLabelSet(s);
     ~state = Dictionary.newFrom([\counter, 0]);
@@ -164,18 +164,31 @@
     arg parent, state, timbre_data, mfcc_buffer, labels, label, bounds;
     var states = [["Add Points"]];
     var add_point = {
-            var id = "sample %".format(state[\counter]);
-            timbre_data.addPoint(id, mfcc_buffer);
-            labels.addLabel(id, label);
-            state[\counter] = state[\counter] + 1;
-            id;
+        var id = "sample %".format(state[\counter]);
+        timbre_data.addPoint(id, mfcc_buffer);
+        labels.addLabel(id, label);
+        state[\counter] = state[\counter] + 1;
+        id;
     };
     ~set_button.value(parent, bounds, states, add_point);
 };
 
+~set_play_button = {
+    arg parent, audio_buffer, bounds;
+    var states = [["Play"],["Stop"]];
+    var analyze_and_play = {
+        ~analyze_and_play.value(
+            audio_buffer,
+            ~number_of_coefficients,
+            ~mfcc_buffer
+        );
+    };
+    ~set_button.value(parent, bounds, states, analyze_and_play);
+};
+
 ~get_window = {
     arg state, timbre_data, mfcc_buffer, labels, label;
-    var name = "MLP Regressor";
+    var name = "MFCC Classifier";
     var bounds = Rect(10, 10, 840, 320);
     var window = Window(name, bounds).front;
     ~set_add_points_button.value(
@@ -185,8 +198,10 @@
         mfcc_buffer,
         labels,
         label,
-        bounds: Rect(10, 10, 100, 20)
+        bounds: Rect(50, 50, 100, 20)
     );
+    ~set_play_button.value(window, ~trombone_training_audio, bounds: Rect(50, 100, 100, 20));
+    ~set_play_button.value(window, ~oboe_training_audio, bounds: Rect(50, 150, 100, 20));
 };
 
 s.waitForBoot {
