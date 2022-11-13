@@ -46,21 +46,32 @@
     ~set_button.value(window, bounds, states, add_point);
 };
 
+~get_audio = {
+    arg audio_buffer;
+    PlayBuf.ar(
+        numChannels: 1,
+        bufnum: audio_buffer,
+        rate: BufRateScale.ir(audio_buffer),
+        doneAction: 2
+    );
+};
+
+~get_mfcc = {
+    arg audio;
+    FluidMFCC.kr(
+        audio,
+        startCoeff: 1,
+        maxNumCoeffs: ~number_of_coefficients
+    );
+
+};
+
 ~analyze_and_play = {
     arg audio_buffer, number_of_coefficients, mfcc_buffer, type;
     ~state[\buffer] = audio_buffer;
     ~state[type] = {
-        var audio = PlayBuf.ar(
-            numChannels: 1,
-            bufnum: audio_buffer,
-            rate: BufRateScale.ir(audio_buffer),
-            doneAction: 2
-        );
-        var mfcc = FluidMFCC.kr(
-            audio,
-            startCoeff: 1,
-            maxNumCoeffs: number_of_coefficients
-        );
+        var audio = ~get_audio.value(audio_buffer);
+        var mfcc = ~get_mfcc.value(audio);
         FluidKrToBuf.kr(mfcc, mfcc_buffer);
         audio.dup;
     }.play;
@@ -190,18 +201,8 @@
     arg mfcc_buffer, neural_network, predictions;
     var audio_buffer = ~state[\buffer];
     ~state[\predictions] = {
-        var audio = PlayBuf.ar(
-            1,
-            audio_buffer,
-            BufRateScale.ir(audio_buffer),
-            doneAction: 2
-        );
-        var mfcc = FluidMFCC.kr(
-            audio,
-            ~number_of_coefficients,
-            startCoeff: 1,
-            maxNumCoeffs: ~number_of_coefficients
-        );
+        var audio = ~get_audio.value(audio_buffer);
+        var mfcc = ~get_mfcc.value(audio);
         var loudness = FluidLoudness.kr(audio)[0];
         var threshold = -40;
         var is_predicting = loudness >= threshold;
