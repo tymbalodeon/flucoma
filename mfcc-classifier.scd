@@ -1,7 +1,7 @@
 (
 ~reset_windows = {
     Window.closeAll;
-    ServerMeter(s, 2, 2);
+    // ServerMeter(s, 2, 2);
 };
 
 ~display_waveform = {
@@ -37,10 +37,11 @@
     var states = [["Add Points"]];
     var add_point = {
         var id = "Sample %".format(state[\counter]);
+        var label = state[\instrument_name];
         timbre_data.addPoint(id, mfcc_buffer);
-        labels.addLabel(id, "label");
+        labels.addLabel(id, label);
         state[\counter] = state[\counter] + 1;
-        "Added %.".format(id).postln;
+        "Added % %.".format(label, id).postln;
         id;
     };
     ~set_button.value(window, bounds, states, add_point);
@@ -67,7 +68,8 @@
 };
 
 ~analyze_and_play = {
-    arg audio_buffer, number_of_coefficients, mfcc_buffer;
+    arg audio_buffer, number_of_coefficients, mfcc_buffer, instrument_name;
+    ~state[\instrument_name] = instrument_name;
     ~state[\synth] = {
         var audio = ~get_audio.value(audio_buffer);
         var mfcc = ~get_mfcc.value(audio);
@@ -81,6 +83,9 @@
         ~state[\synth].free;
         ~state.removeAt(\synth);
         "Playing stopped.".postln;
+    };
+    if (~state.includesKey(\instrument_name)) {
+        ~state.removeAt(\instrument_name);
     };
 };
 
@@ -112,7 +117,8 @@
             ~analyze_and_play.value(
                 audio_buffer,
                 ~number_of_coefficients,
-                ~mfcc_buffer
+                ~mfcc_buffer,
+                instrument_name
             );
         };
     };
