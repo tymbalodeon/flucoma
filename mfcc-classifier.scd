@@ -47,9 +47,8 @@
 };
 
 ~analyze_and_play = {
-    arg audio_buffer, number_of_coefficients,
-    mfcc_buffer, instrument_name;
-    ~state[instrument_name] = {
+    arg audio_buffer, number_of_coefficients, mfcc_buffer, type;
+    ~state[type] = {
         var audio = PlayBuf.ar(
             numChannels: 1,
             bufnum: audio_buffer,
@@ -67,8 +66,8 @@
 };
 
 ~stop_analyzing_and_playing = {
-    arg instrument_name;
-    ~state[instrument_name].free;
+    arg type;
+    ~state[type].free;
 };
 
 ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
@@ -91,24 +90,24 @@
 };
 
 ~set_play_button = {
-    arg window, audio_buffer, instrument_name, bounds;
+    arg window, audio_buffer, instrument_name, bounds, type;
     var states = [
-        ["Play %".format(instrument_name)],
-        ["Stop %".format(instrument_name)]
+        ["Play % %".format(instrument_name, type)],
+        ["Stop % %".format(instrument_name, type)]
     ];
     var play_and_stop = {
         arg button;
         var playing = button.value;
         if (playing == 0) {
-            "% stopped.".format(instrument_name).postln;
-            ~stop_analyzing_and_playing.value(instrument_name);
+            "% % stopped.".format(instrument_name, type).postln;
+            ~stop_analyzing_and_playing.value(type);
         } {
-            "Playing %...".format(instrument_name).postln;
+            "Playing % %...".format(instrument_name, type).postln;
             ~analyze_and_play.value(
                 audio_buffer,
                 ~number_of_coefficients,
                 ~mfcc_buffer,
-                instrument_name
+                type
             );
         };
     };
@@ -187,7 +186,8 @@
 };
 
 ~play_prediction_synth = {
-    arg audio_buffer, mfcc_buffer, neural_network, predictions;
+    arg mfcc_buffer, neural_network, predictions;
+    var audio_buffer = ~state[\testing];
     ~state[\predictions] = {
         var audio = PlayBuf.ar(
             1,
@@ -226,11 +226,10 @@
 };
 
 ~make_predictions = {
-    arg audio_buffer, mfcc_buffer, neural_network;
+    arg mfcc_buffer, neural_network;
     var predictions = ~get_predictions_buffer.value;
     ~set_prediction_action.value;
     ~play_prediction_synth.value(
-        audio_buffer,
         mfcc_buffer,
         neural_network,
         predictions
@@ -238,8 +237,8 @@
 };
 
 ~set_predictions_button = {
-    arg window, bounds, audio_buffer, mfcc_buffer, neural_network;
-    var states = [["Play predictions"], ["Stop predicitons"]];
+    arg window, bounds, mfcc_buffer, neural_network;
+    var states = [["Make predictions"], ["Stop predicitons"]];
     var play_and_stop_predictions = {
         arg button;
         var playing = button.value;
@@ -248,7 +247,7 @@
             ~stop_prediction_synth.value();
         } {
             "Playing predictions...".postln;
-            ~make_predictions.value(audio_buffer, mfcc_buffer, neural_network);
+            ~make_predictions.value(mfcc_buffer, neural_network);
         };
     };
     ~set_button.value(window, bounds, states, play_and_stop_predictions);
@@ -260,7 +259,7 @@
     var window = Window(name).front;
     ~set_add_points_button.value(
         window,
-        Rect(50, 50, 100, 20),
+        Rect(50, 50, 200, 20),
         state,
         timbre_data,
         mfcc_buffer,
@@ -270,20 +269,35 @@
         window,
         ~get_trombone_training_audio.value,
         \Trombone,
-        bounds: Rect(50, 100, 100, 20)
+        Rect(50, 100, 200, 20),
+        \training
     );
     ~set_play_button.value(
         window,
         ~get_oboe_training_audio.value,
         \Oboe,
-        bounds: Rect(50, 150, 100, 20)
+        Rect(50, 150, 200, 20),
+        \training
     );
-    ~set_reset_button.value(window, Rect(50, 200, 100, 20));
-    ~set_train_button.value(window, Rect(50, 250, 100, 20));
+    ~set_reset_button.value(window, Rect(350, 50, 200, 20));
+    ~set_train_button.value(window, Rect(350, 100, 200, 20));
+    ~set_play_button.value(
+        window,
+        ~get_trombone_testing_audio.value,
+        \Trombone,
+        Rect(50, 200, 200, 20),
+        \testing
+    );
+    ~set_play_button.value(
+        window,
+        ~get_oboe_testing_audio.value,
+        \Oboe,
+        Rect(50, 250, 200, 20),
+        \testing
+    );
     ~set_predictions_button.value(
         window,
-        Rect(50, 300, 100, 20),
-        ~get_trombone_testing_audio.value,
+        Rect(350, 150, 200, 20),
         mfcc_buffer,
         neural_network
     );
