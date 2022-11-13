@@ -71,13 +71,32 @@
     ~state[instrument_name].free;
 };
 
+~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
+~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
+
+~get_trombone_training_audio = {
+    ~get_training_audio.value(~trombone_file);
+};
+
+~get_trombone_testing_audio = {
+    ~get_testing_audio.value(~trombone_file);
+};
+
+~get_oboe_training_audio = {
+    ~get_training_audio.value(~oboe_file);
+};
+
+~get_oboe_testing_audio = {
+    ~get_testing_audio.value(~oboe_file);
+};
+
 ~set_play_button = {
     arg window, audio_buffer, instrument_name, bounds;
     var states = [
         ["Play %".format(instrument_name)],
         ["Stop %".format(instrument_name)]
     ];
-    var analyze_and_play = {
+    var play_and_stop = {
         arg button;
         var playing = button.value;
         if (playing == 0) {
@@ -93,17 +112,7 @@
             );
         };
     };
-    ~set_button.value(window, bounds, states, analyze_and_play);
-};
-
-~get_trombone_training_audio = {
-    ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
-    ~get_training_audio.value(~trombone_file);
-};
-
-~get_oboe_training_audio = {
-    ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
-    ~get_training_audio.value(~oboe_file);
+    ~set_button.value(window, bounds, states, play_and_stop);
 };
 
 ~reset = {
@@ -115,33 +124,11 @@
     "Points reset.".postln;
 };
 
-~get_window = {
-    arg state, timbre_data, mfcc_buffer, labels;
-    var name = "MFCC Classifier";
-    var window = Window(name).front;
-    ~set_add_points_button.value(
-        window,
-        Rect(50, 50, 100, 20),
-        state,
-        timbre_data,
-        mfcc_buffer,
-        labels
-    );
-    ~set_play_button.value(
-        window,
-        ~get_trombone_training_audio.value,
-        \Trombone,
-        bounds: Rect(50, 100, 100, 20)
-    );
-    ~set_play_button.value(
-        window,
-        ~get_oboe_training_audio.value,
-        \Oboe,
-        bounds: Rect(50, 150, 100, 20)
-    );
+~set_reset_button = {
+    arg window, bounds;
     ~set_button.value(
         window,
-        Rect(50, 200, 100, 20),
+        bounds,
         [["Reset"]],
         ~reset
     );
@@ -170,64 +157,135 @@
     neural_network.fit(~timbre_data, ~labels, post_loss);
 };
 
+~train =  {
+    20.do {
+        ~train_neural_network.value(~neural_network);
+    };
+};
+
+~set_train_button = {
+    arg window, bounds;
+    ~set_button.value(
+        window,
+        bounds,
+        [["Train"]],
+        ~train
+    );
+};
+
+~get_predictions_buffer = {
+    var num_frames = 1;
+    Buffer.alloc(s, num_frames);
+};
+
+~set_prediction_action = {
+    var post_message = {
+        arg message;
+        message[3].postln;
+    };
+    OSCdef(\predictions, post_message, "/prediction");
+};
+
+~play_prediction_synth = {
+    arg audio_buffer, mfcc_buffer, neural_network, predictions;
+    ~state[\predictions] = {
+        var audio = PlayBuf.ar(
+            1,
+            audio_buffer,
+            BufRateScale.ir(audio_buffer),
+            doneAction: 2
+        );
+        var mfcc = FluidMFCC.kr(
+            audio,
+            ~number_of_coefficients,
+            startCoeff: 1,
+            maxNumCoeffs: ~number_of_coefficients
+        );
+        var loudness = FluidLoudness.kr(audio)[0];
+        var threshold = -40;
+        var is_predicting = loudness >= threshold;
+        var trigger = Impulse.kr(30);
+        FluidKrToBuf.kr(mfcc, mfcc_buffer);
+        neural_network.kr(
+            trigger * is_predicting,
+            mfcc_buffer,
+            predictions
+        );
+        SendReply.kr(
+            trigger * is_predicting,
+            "/prediction",
+            FluidBufToKr.kr(predictions)
+        );
+        SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
+        audio.dup;
+    }.play;
+};
+
+~stop_prediction_synth = {
+    ~state[\predictions].free;
+};
+
 ~make_predictions = {
     arg audio_buffer, mfcc_buffer, neural_network;
-
-    var get_predictions_buffer = {
-        var num_frames = 1;
-        Buffer.alloc(s, num_frames);
-    };
-
-    var set_prediction_action = {
-        var post_message = {
-            arg message;
-            message[3].postln;
-        };
-        OSCdef(\predictions, post_message, "/prediction");
-    };
-
-    var play_prediction_synth = {
-        arg audio_buffer, mfcc_buffer, neural_network, predictions;
-        {
-            var audio = PlayBuf.ar(
-                1,
-                audio_buffer,
-                BufRateScale.ir(audio_buffer),
-                doneAction: 2
-            );
-            var mfcc = FluidMFCC.kr(
-                audio,
-                ~number_of_coefficients,
-                startCoeff: 1,
-                maxNumCoeffs: ~number_of_coefficients
-            );
-            var loudness = FluidLoudness.kr(audio)[0];
-            var threshold = -40;
-            var is_predicting = loudness >= threshold;
-            var trigger = Impulse.kr(30);
-            FluidKrToBuf.kr(mfcc, mfcc_buffer);
-            neural_network.kr(
-                trigger * is_predicting,
-                mfcc_buffer,
-                predictions
-            );
-            SendReply.kr(
-                trigger * is_predicting,
-                "/prediction",
-                FluidBufToKr.kr(predictions)
-            );
-            SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
-            audio.dup;
-        }.play;
-    };
-
-    var predictions = get_predictions_buffer.value;
-    set_prediction_action.value;
-    play_prediction_synth.value(
+    var predictions = ~get_predictions_buffer.value;
+    ~set_prediction_action.value;
+    ~play_prediction_synth.value(
         audio_buffer,
         mfcc_buffer,
         neural_network,
         predictions
+    );
+};
+
+~set_predictions_button = {
+    arg window, bounds, audio_buffer, mfcc_buffer, neural_network;
+    var states = [["Play predictions"], ["Stop predicitons"]];
+    var play_and_stop_predictions = {
+        arg button;
+        var playing = button.value;
+        if (playing == 0) {
+            "Predictions stopped.".postln;
+            ~stop_prediction_synth.value();
+        } {
+            "Playing predictions...".postln;
+            ~make_predictions.value(audio_buffer, mfcc_buffer, neural_network);
+        };
+    };
+    ~set_button.value(window, bounds, states, play_and_stop_predictions);
+};
+
+~get_window = {
+    arg state, timbre_data, mfcc_buffer, labels, neural_network;
+    var name = "MFCC Classifier";
+    var window = Window(name).front;
+    ~set_add_points_button.value(
+        window,
+        Rect(50, 50, 100, 20),
+        state,
+        timbre_data,
+        mfcc_buffer,
+        labels
+    );
+    ~set_play_button.value(
+        window,
+        ~get_trombone_training_audio.value,
+        \Trombone,
+        bounds: Rect(50, 100, 100, 20)
+    );
+    ~set_play_button.value(
+        window,
+        ~get_oboe_training_audio.value,
+        \Oboe,
+        bounds: Rect(50, 150, 100, 20)
+    );
+    ~set_reset_button.value(window, Rect(50, 200, 100, 20));
+    ~set_train_button.value(window, Rect(50, 250, 100, 20));
+    ~set_predictions_button.value(
+        window,
+        Rect(50, 300, 100, 20),
+        ~get_trombone_testing_audio.value,
+        mfcc_buffer,
+        neural_network
     );
 };
 
@@ -240,13 +298,6 @@
     neural_network.predictPoint(mfcc_buffer, post_label);
 };
 
-~train =  {
-    arg neural_network;
-    20.do {
-        ~train_neural_network.value(neural_network);
-    };
-};
-
 ~load_mfcc = {
     ~reset_windows.value;
     ~state = Dictionary.newFrom([\counter, 0]);
@@ -254,7 +305,14 @@
     ~number_of_coefficients = 13;
     ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
     ~labels = FluidLabelSet(s);
-    ~get_window.value(~state, ~timbre_data, ~mfcc_buffer, ~labels);
+    ~neural_network = ~get_neural_network.value;
+    ~get_window.value(
+        ~state,
+        ~timbre_data,
+        ~mfcc_buffer,
+        ~labels,
+        ~neural_network
+    );
 };
 
 s.waitForBoot {
