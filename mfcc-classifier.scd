@@ -187,6 +187,7 @@
 
 ~play_prediction_synth = {
     arg mfcc_buffer, neural_network, predictions;
+    // TODO fix the following to use the buffer, not the synth
     var audio_buffer = ~state[\testing];
     ~state[\predictions] = {
         var audio = PlayBuf.ar(
