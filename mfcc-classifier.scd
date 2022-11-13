@@ -1,3 +1,6 @@
+// TODO add show all data points button
+// TODO add display waveform functionality
+
 (
 ~reset_windows = {
     Window.closeAll;
@@ -34,7 +37,7 @@
 
 ~set_add_points_button = {
     arg window, bounds, state, timbre_data, mfcc_buffer, labels;
-    var states = [["Add Point"]];
+    var states = [["Add point"]];
     var add_point = {
         var id = "Sample %".format(state[\counter]);
         var label = state[\instrument_name];
@@ -280,14 +283,14 @@
         window,
         Rect(10, 10, 200, 50),
         ~get_trombone_training_audio.value,
-        \Trombone,
+        \trombone,
         "training"
     );
     ~set_play_button.value(
         window,
         Rect(10, 60, 200, 50),
         ~get_oboe_training_audio.value,
-        \Oboe,
+        \oboe,
         "training"
     );
     ~set_reset_button.value(window, Rect(230, 60, 200, 50));
@@ -296,14 +299,14 @@
         window,
         Rect(10, 110, 200, 50),
         ~get_trombone_testing_audio.value,
-        \Trombone,
+        \trombone,
         "testing"
     );
     ~set_play_button.value(
         window,
         Rect(10, 160, 200, 50),
         ~get_oboe_testing_audio.value,
-        \Oboe,
+        \oboe,
         "testing"
     );
     ~set_stop_playing_button.value(
