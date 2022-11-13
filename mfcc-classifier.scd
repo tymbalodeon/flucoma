@@ -67,9 +67,8 @@
 };
 
 ~analyze_and_play = {
-    arg audio_buffer, number_of_coefficients, mfcc_buffer, type;
-    ~state[\buffer] = audio_buffer;
-    ~state[type] = {
+    arg audio_buffer, number_of_coefficients, mfcc_buffer;
+    ~state[\synth] = {
         var audio = ~get_audio.value(audio_buffer);
         var mfcc = ~get_mfcc.value(audio);
         FluidKrToBuf.kr(mfcc, mfcc_buffer);
@@ -78,8 +77,11 @@
 };
 
 ~stop_analyzing_and_playing = {
-    arg type;
-    ~state[type].free;
+    if (~state.includesKey(\synth)) {
+        ~state[\synth].free;
+        ~state.removeAt(\synth);
+        "Playing stopped.".postln;
+    };
 };
 
 ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
@@ -102,28 +104,29 @@
 };
 
 ~set_play_button = {
-    arg window, audio_buffer, instrument_name, bounds, type;
-    var states = [
-        ["Play % %".format(instrument_name, type)],
-        ["Stop % %".format(instrument_name, type)]
-    ];
-    var play_and_stop = {
-        arg button;
-        var playing = button.value;
-        if (playing == 0) {
-            "% % stopped.".format(instrument_name, type).postln;
-            ~stop_analyzing_and_playing.value(type);
-        } {
+    arg window, bounds, audio_buffer, instrument_name, type;
+    var states = [["Play % %".format(instrument_name, type)]];
+    var play = {
+        if (~state.includesKey(\synth).not()) {
             "Playing % %...".format(instrument_name, type).postln;
             ~analyze_and_play.value(
                 audio_buffer,
                 ~number_of_coefficients,
-                ~mfcc_buffer,
-                type
+                ~mfcc_buffer
             );
         };
     };
-    ~set_button.value(window, bounds, states, play_and_stop);
+    ~set_button.value(window, bounds, states, play);
+};
+
+~set_stop_playing_button = {
+    arg window, bounds;
+    ~set_button.value(
+        window,
+        bounds,
+        [["Stop playing"]],
+        ~stop_analyzing_and_playing;
+    );
 };
 
 ~reset = {
@@ -269,33 +272,39 @@
     );
     ~set_play_button.value(
         window,
+        Rect(50, 100, 200, 20),
         ~get_trombone_training_audio.value,
         \Trombone,
-        Rect(50, 100, 200, 20),
-        \training
+        "training"
     );
     ~set_play_button.value(
         window,
+        Rect(50, 150, 200, 20),
         ~get_oboe_training_audio.value,
         \Oboe,
-        Rect(50, 150, 200, 20),
-        \training
+        "training"
     );
     ~set_reset_button.value(window, Rect(350, 50, 200, 20));
     ~set_train_button.value(window, Rect(350, 100, 200, 20));
     ~set_play_button.value(
         window,
+        Rect(50, 200, 200, 20),
         ~get_trombone_testing_audio.value,
         \Trombone,
-        Rect(50, 200, 200, 20),
-        \testing
+        "testing"
     );
     ~set_play_button.value(
         window,
+        Rect(50, 250, 200, 20),
         ~get_oboe_testing_audio.value,
         \Oboe,
-        Rect(50, 250, 200, 20),
-        \testing
+        "testing"
+    );
+    ~set_stop_playing_button.value(
+        window,
+        Rect(350, 100, 200, 20),
+        mfcc_buffer,
+        neural_network
     );
     ~set_predictions_button.value(
         window,
