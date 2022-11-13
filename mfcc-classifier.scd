@@ -264,7 +264,7 @@
     var window = Window(name).front;
     ~set_add_points_button.value(
         window,
-        Rect(50, 50, 200, 20),
+        Rect(230, 10, 200, 50),
         state,
         timbre_data,
         mfcc_buffer,
@@ -272,43 +272,43 @@
     );
     ~set_play_button.value(
         window,
-        Rect(50, 100, 200, 20),
+        Rect(10, 10, 200, 50),
         ~get_trombone_training_audio.value,
         \Trombone,
         "training"
     );
     ~set_play_button.value(
         window,
-        Rect(50, 150, 200, 20),
+        Rect(10, 60, 200, 50),
         ~get_oboe_training_audio.value,
         \Oboe,
         "training"
     );
-    ~set_reset_button.value(window, Rect(350, 50, 200, 20));
-    ~set_train_button.value(window, Rect(350, 100, 200, 20));
+    ~set_reset_button.value(window, Rect(230, 60, 200, 50));
+    ~set_train_button.value(window, Rect(230, 160, 200, 50));
     ~set_play_button.value(
         window,
-        Rect(50, 200, 200, 20),
+        Rect(10, 110, 200, 50),
         ~get_trombone_testing_audio.value,
         \Trombone,
         "testing"
     );
     ~set_play_button.value(
         window,
-        Rect(50, 250, 200, 20),
+        Rect(10, 160, 200, 50),
         ~get_oboe_testing_audio.value,
         \Oboe,
         "testing"
     );
     ~set_stop_playing_button.value(
         window,
-        Rect(350, 100, 200, 20),
+        Rect(10, 230, 200, 50),
         mfcc_buffer,
         neural_network
     );
     ~set_predictions_button.value(
         window,
-        Rect(350, 150, 200, 20),
+        Rect(230, 230, 200, 50),
         mfcc_buffer,
         neural_network
     );
