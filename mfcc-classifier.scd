@@ -48,6 +48,7 @@
 
 ~analyze_and_play = {
     arg audio_buffer, number_of_coefficients, mfcc_buffer, type;
+    ~state[\buffer] = audio_buffer;
     ~state[type] = {
         var audio = PlayBuf.ar(
             numChannels: 1,
@@ -187,8 +188,7 @@
 
 ~play_prediction_synth = {
     arg mfcc_buffer, neural_network, predictions;
-    // TODO fix the following to use the buffer, not the synth
-    var audio_buffer = ~state[\testing];
+    var audio_buffer = ~state[\buffer];
     ~state[\predictions] = {
         var audio = PlayBuf.ar(
             1,
