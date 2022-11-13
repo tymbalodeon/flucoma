@@ -34,7 +34,7 @@
 
 ~set_add_points_button = {
     arg window, bounds, state, timbre_data, mfcc_buffer, labels;
-    var states = [["Add Points"]];
+    var states = [["Add Point"]];
     var add_point = {
         var id = "Sample %".format(state[\counter]);
         var label = state[\instrument_name];
