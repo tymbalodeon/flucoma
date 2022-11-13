@@ -1,10 +1,15 @@
 (
-~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
-~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
+~reset_windows = {
+    Window.closeAll;
+    ServerMeter(s, 2, 2);
+};
+
+~display_waveform = {
+    arg audio;
+    FluidWaveform(audio);
+};
+
 ~split_frame = 1783040;
-~number_of_coefficients = 13;
-~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
-~state = Dictionary.newFrom([\counter, 0]);
 
 ~load_audio_file = {
     arg filename, start_frame = 0, num_frames = -1;
@@ -22,18 +27,28 @@
     ~load_audio_file.value(filename, start_frame: ~split_frame);
 };
 
-~trombone_training_audio = ~get_training_audio.value(~trombone_file);
-~trombone_testing_audio = ~get_testing_audio.value(~trombone_file);
-~oboe_training_audio = ~get_training_audio.value(~oboe_file);
-~oboe_testing_audio = ~get_testing_audio.value(~oboe_file);
+~set_button = {
+    arg window, bounds, states, action;
+    Button(window, bounds).states_(states).action_(action);
+};
 
-~display_waveform = {
-    arg audio;
-    FluidWaveform(audio);
+~set_add_points_button = {
+    arg window, bounds, state, timbre_data, mfcc_buffer, labels;
+    var states = [["Add Points"]];
+    var add_point = {
+        var id = "Sample %".format(state[\counter]);
+        timbre_data.addPoint(id, mfcc_buffer);
+        labels.addLabel(id, "label");
+        state[\counter] = state[\counter] + 1;
+        "Added %.".format(id).postln;
+        id;
+    };
+    ~set_button.value(window, bounds, states, add_point);
 };
 
 ~analyze_and_play = {
-    arg audio_buffer, number_of_coefficients, mfcc_buffer, instrument_name;
+    arg audio_buffer, number_of_coefficients,
+    mfcc_buffer, instrument_name;
     ~state[instrument_name] = {
         var audio = PlayBuf.ar(
             numChannels: 1,
@@ -51,18 +66,85 @@
     }.play;
 };
 
-~stop_playing = {
+~stop_analyzing_and_playing = {
     arg instrument_name;
-    ~state[instrument_name].stop;
-}
+    ~state[instrument_name].free;
+};
 
-~add_point = {
-    arg state, timbre_data, mfcc_buffer, labels, label;
-    var id = "sample %".format(state[\counter]);
-    timbre_data.addPoint(id, mfcc_buffer);
-    labels.addLabel(id, label);
-    state[\counter] = state[\counter] + 1;
-    id;
+~set_play_button = {
+    arg window, audio_buffer, instrument_name, bounds;
+    var states = [
+        ["Play %".format(instrument_name)],
+        ["Stop %".format(instrument_name)]
+    ];
+    var analyze_and_play = {
+        arg button;
+        var playing = button.value;
+        if (playing == 0) {
+            "% stopped.".format(instrument_name).postln;
+            ~stop_analyzing_and_playing.value(instrument_name);
+        } {
+            "Playing %...".format(instrument_name).postln;
+            ~analyze_and_play.value(
+                audio_buffer,
+                ~number_of_coefficients,
+                ~mfcc_buffer,
+                instrument_name
+            );
+        };
+    };
+    ~set_button.value(window, bounds, states, analyze_and_play);
+};
+
+~get_trombone_training_audio = {
+    ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
+    ~get_training_audio.value(~trombone_file);
+};
+
+~get_oboe_training_audio = {
+    ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
+    ~get_training_audio.value(~oboe_file);
+};
+
+~reset = {
+    ~state[\counter] = 0;
+    [~timbre_data, ~mfcc_buffer, ~labels].do {
+        arg data;
+        data.clear;
+    };
+    "Points reset.".postln;
+};
+
+~get_window = {
+    arg state, timbre_data, mfcc_buffer, labels;
+    var name = "MFCC Classifier";
+    var window = Window(name).front;
+    ~set_add_points_button.value(
+        window,
+        Rect(50, 50, 100, 20),
+        state,
+        timbre_data,
+        mfcc_buffer,
+        labels
+    );
+    ~set_play_button.value(
+        window,
+        ~get_trombone_training_audio.value,
+        \Trombone,
+        bounds: Rect(50, 100, 100, 20)
+    );
+    ~set_play_button.value(
+        window,
+        ~get_oboe_training_audio.value,
+        \Oboe,
+        bounds: Rect(50, 150, 100, 20)
+    );
+    ~set_button.value(
+        window,
+        Rect(50, 200, 100, 20),
+        [["Reset"]],
+        ~reset
+    );
 };
 
 ~get_neural_network = {
@@ -160,123 +242,17 @@
     };
 };
 
-~load_audio = {
+~load_mfcc = {
+    ~reset_windows.value;
+    ~state = Dictionary.newFrom([\counter, 0]);
     ~timbre_data = FluidDataSet(s);
+    ~number_of_coefficients = 13;
+    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
     ~labels = FluidLabelSet(s);
-
-    ~reset = {
-        ~state[\counter] = 0;
-        [~timbre_data, ~mfcc_buffer, ~labels].do {
-            arg data;
-            data.clear;
-        }
-    };
-};
-
-~reset_windows = {
-    Window.closeAll;
-    ServerMeter(s, 2, 2);
-};
-
-~set_button = {
-    arg parent, bounds, states, action;
-    Button(parent, bounds).states_(states).action_(action);
-};
-
-~set_add_points_button = {
-    arg parent, state, timbre_data, mfcc_buffer, labels, label, bounds;
-    var states = [["Add Points"]];
-    var add_point = {
-        var id = "sample %".format(state[\counter]);
-        timbre_data.addPoint(id, mfcc_buffer);
-        labels.addLabel(id, label);
-        state[\counter] = state[\counter] + 1;
-        id;
-    };
-    ~set_button.value(parent, bounds, states, add_point);
-};
-
-~set_play_button = {
-    arg parent, audio_buffer, instrument_name, bounds;
-    var states = [["Play"],["Stop"]];
-    var analyze_and_play = {
-        ~analyze_and_play.value(
-            audio_buffer,
-            ~number_of_coefficients,
-            ~mfcc_buffer,
-            instrument_name
-        );
-    };
-    ~set_button.value(parent, bounds, states, analyze_and_play);
-};
-
-~reset = {
-    ~state[\counter] = 0;
-    [~timbre_data, ~mfcc_buffer, ~labels].do {
-        arg data;
-        data.clear;
-    }
-};
-
-~get_window = {
-    arg state, timbre_data, mfcc_buffer, labels, label;
-    var name = "MFCC Classifier";
-    var bounds = Rect(10, 10, 840, 320);
-    var window = Window(name, bounds).front;
-    ~set_add_points_button.value(
-        window,
-        state,
-        timbre_data,
-        mfcc_buffer,
-        labels,
-        label,
-        bounds: Rect(50, 50, 100, 20)
-    );
-    ~set_play_button.value(
-        window,
-        ~trombone_training_audio,
-        \trombone,
-        bounds: Rect(50, 100, 100, 20)
-    );
-    ~set_play_button.value(
-        window,
-        ~oboe_training_audio,
-        \oboe,
-        bounds: Rect(50, 150, 100, 20)
-    );
-    ~set_button.value(
-        window,
-        bounds: Rect(50, 200, 100, 20),
-        [["Reset"]],
-        ~reset
-    );
-    ~set_button.value(
-        window,
-        bounds: Rect(50, 200, 100, 20),
-        [["Train"]],
-        ~train
-    );
+    ~get_window.value(~state, ~timbre_data, ~mfcc_buffer, ~labels);
 };
 
 s.waitForBoot {
-    ~load_audio.value;
-    ~reset_windows.value;
-    ~get_window.value;
+    ~load_mfcc.value;
 };
 )
-
-~reset.value;
-
-~analyze_and_play.value(~trombone_training_audio, ~number_of_coefficients, ~mfcc_buffer);
-~add_point.value(~state, ~timbre_data, ~mfcc_buffer, ~labels, "trombone");
-
-~analyze_and_play.value(~oboe_training_audio, ~number_of_coefficients, ~mfcc_buffer);
-~add_point.value(~state, ~timbre_data, ~mfcc_buffer, ~labels, "oboe");
-
-~train.value;
-
-~make_predictions.value(~trombone_testing_audio, ~mfcc_buffer, ~neural_network);
-~make_predictions.value(~oboe_testing_audio, ~mfcc_buffer, ~neural_network);
-
-~analyze_and_play.value(~trombone_testing_audio, ~number_of_coefficients, ~mfcc_buffer);
-~analyze_and_play.value(~oboe_testing_audio, ~number_of_coefficients, ~mfcc_buffer);
