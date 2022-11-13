@@ -223,7 +223,12 @@
 
     var predictions = get_predictions_buffer.value;
     set_prediction_action.value;
-    play_prediction_synth.value(audio_buffer, mfcc_buffer, neural_network, predictions);
+    play_prediction_synth.value(
+        audio_buffer,
+        mfcc_buffer,
+        neural_network,
+        predictions
+    );
 };
 
 ~predict_point = {
