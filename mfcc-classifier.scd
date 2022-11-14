@@ -1,6 +1,3 @@
-// TODO add show all data points button
-// TODO add display waveform functionality
-
 (
 ~reset_windows = {
     Window.closeAll;
@@ -72,6 +69,7 @@
 
 ~analyze_and_play = {
     arg audio_buffer, number_of_coefficients, mfcc_buffer, instrument_name;
+    ~state[\waveform] = ~display_waveform.value(audio_buffer);
     ~state[\instrument_name] = instrument_name;
     ~state[\synth] = {
         var audio = ~get_audio.value(audio_buffer);
@@ -89,6 +87,10 @@
     };
     if (~state.includesKey(\instrument_name)) {
         ~state.removeAt(\instrument_name);
+    };
+    if (~state.includesKey(\waveform)) {
+        ~state[\waveform].close;
+        ~state.removeAt(\waveform);
     };
 };
 
@@ -155,6 +157,19 @@
         [["Reset"]],
         ~reset
     );
+};
+
+~set_show_all_points_button = {
+    arg window, bounds, timbre_data;
+    var action = {
+        timbre_data.print;
+    };
+    ~set_button.value(
+        window,
+        bounds,
+        [["Show all points"]],
+        action
+    )
 };
 
 ~get_neural_network = {
@@ -330,6 +345,11 @@
         neural_network,
         ~get_oboe_testing_audio.value,
         "oboe"
+    );
+    ~set_show_all_points_button.value(
+        window,
+        Rect(450, 280, 200, 50),
+        timbre_data
     );
 };
 
