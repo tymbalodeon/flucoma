@@ -4,7 +4,7 @@
 (
 ~reset_windows = {
     Window.closeAll;
-    // ServerMeter(s, 2, 2);
+    ServerMeter(s, 2, 2);
 };
 
 ~display_waveform = {
@@ -210,8 +210,7 @@
 };
 
 ~play_prediction_synth = {
-    arg mfcc_buffer, neural_network, predictions;
-    var audio_buffer = ~state[\buffer];
+    arg mfcc_buffer, neural_network, predictions, audio_buffer;
     ~state[\predictions] = {
         var audio = ~get_audio.value(audio_buffer);
         var mfcc = ~get_mfcc.value(audio);
@@ -240,19 +239,20 @@
 };
 
 ~make_predictions = {
-    arg mfcc_buffer, neural_network;
+    arg mfcc_buffer, neural_network, audio_buffer;
     var predictions = ~get_predictions_buffer.value;
     ~set_prediction_action.value;
     ~play_prediction_synth.value(
         mfcc_buffer,
         neural_network,
-        predictions
+        predictions,
+        audio_buffer
     );
 };
 
 ~set_predictions_button = {
-    arg window, bounds, mfcc_buffer, neural_network;
-    var states = [["Make predictions"], ["Stop predicitons"]];
+    arg window, bounds, mfcc_buffer, neural_network, audio_buffer, instrument_name;
+    var states = [["Predict %".format(instrument_name)], ["Stop predicting"]];
     var play_and_stop_predictions = {
         arg button;
         var playing = button.value;
@@ -261,7 +261,7 @@
             ~stop_prediction_synth.value();
         } {
             "Playing predictions...".postln;
-            ~make_predictions.value(mfcc_buffer, neural_network);
+            ~make_predictions.value(mfcc_buffer, neural_network, audio_buffer);
         };
     };
     ~set_button.value(window, bounds, states, play_and_stop_predictions);
@@ -319,7 +319,17 @@
         window,
         Rect(230, 230, 200, 50),
         mfcc_buffer,
-        neural_network
+        neural_network,
+        ~get_trombone_testing_audio.value,
+        "trombone"
+    );
+    ~set_predictions_button.value(
+        window,
+        Rect(230, 280, 200, 50),
+        mfcc_buffer,
+        neural_network,
+        ~get_oboe_testing_audio.value,
+        "oboe"
     );
 };
 
