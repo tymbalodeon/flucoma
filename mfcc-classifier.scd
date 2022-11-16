@@ -102,11 +102,11 @@
 };
 
 ~set_play_button = {
-    arg bounds, audio_buffer, instrument_name, type;
-    var states = [["Play % %".format(instrument_name, type)]];
+    arg bounds, audio_buffer, instrument_name;
+    var states = [["Play % training".format(instrument_name)]];
     var play = {
         if (~synth == nil) {
-            "Playing % %...".format(instrument_name, type).postln;
+            "Playing % training...".format(instrument_name).postln;
             ~analyze_and_play.(
                 audio_buffer,
                 instrument_name
@@ -248,14 +248,12 @@
     ~set_play_button.(
         Rect(10, 10, 200, 50),
         ~get_training_audio.(~trombone_file),
-        \trombone,
-        "training"
+        \trombone
     );
     ~set_play_button.(
         Rect(10, 60, 200, 50),
         ~get_training_audio.(~oboe_file),
-        \oboe,
-        "training"
+        \oboe
     );
     ~set_reset_button.(Rect(230, 60, 200, 50));
     ~set_train_button.(Rect(230, 160, 200, 50));
