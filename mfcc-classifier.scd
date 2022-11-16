@@ -46,11 +46,10 @@
 };
 
 ~get_audio = {
-    arg audio_buffer;
     PlayBuf.ar(
         numChannels: 1,
-        bufnum: audio_buffer,
-        rate: BufRateScale.ir(audio_buffer),
+        bufnum: ~audio_buffer,
+        rate: BufRateScale.ir(~audio_buffer),
         doneAction: 2
     );
 };
@@ -65,8 +64,8 @@
 };
 
 ~get_synth = {
-    arg audio_buffer, make_predictions = false, predictions = nil;
-    var audio = ~get_audio.(audio_buffer);
+    arg make_predictions = false, predictions = nil;
+    var audio = ~get_audio.();
     var mfcc = ~get_mfcc.(audio);
     if (make_predictions == true) {
         var loudness = FluidLoudness.kr(audio)[0];
@@ -90,15 +89,16 @@
 };
 
 ~display_waveform = {
-    arg audio;
-    FluidWaveform(audio);
+    FluidWaveform(~audio_buffer);
 };
 
 ~analyze_and_play = {
-    arg audio_buffer, instrument_name;
-    ~waveform = ~display_waveform.(audio_buffer);
+    arg instrument_name;
+    ~waveform = ~display_waveform.();
     ~instrument_name = instrument_name;
-    ~synth = {~get_synth.(audio_buffer)}.play;
+    ~synth = {
+        ~get_synth.();
+    }.play;
 };
 
 ~set_play_button = {
@@ -107,8 +107,8 @@
     var play = {
         if (~synth == nil) {
             "Playing % training...".format(instrument_name).postln;
+            ~audio_buffer = audio_buffer;
             ~analyze_and_play.(
-                audio_buffer,
                 instrument_name
             );
         };
@@ -125,15 +125,18 @@
             ~synth = nil;
             "Playing stopped.".postln;
         };
-        if (~instrument_name != nil) {
-            ~instrument_name = nil;
-        };
         if (~waveform != nil) {
             ~waveform.close;
             ~waveform = nil;
         };
+        if (~audio_buffer != nil) {
+            ~audio_buffer = nil;
+        };
+        if (~instrument_name != nil) {
+            ~instrument_name = nil;
+        };
     };
-    ~set_button.(bounds, states, ~stop_analyzing_and_playing);
+    ~set_button.(bounds, states, stop_analyzing_and_playing);
 };
 
 ~set_reset_button = {
@@ -147,7 +150,7 @@
         };
         "Points reset.".postln;
     };
-    ~set_button.(bounds, states, ~reset);
+    ~set_button.(bounds, states, reset);
 };
 
 ~set_show_all_points_button = {
@@ -186,25 +189,19 @@
 };
 
 ~play_prediction_synth = {
-    arg predictions, audio_buffer, instrument_name;
-    ~waveform = ~display_waveform.(audio_buffer);
+    arg predictions, instrument_name;
+    ~waveform = ~display_waveform.();
     ~instrument_name = instrument_name;
-    ~synth = {~get_synth.(
-        audio_buffer,
-        make_predictions: true,
-        predictions: predictions
-    )}.play;
+    ~synth = {
+        ~get_synth.(make_predictions: true, predictions: predictions);
+    }.play;
 };
 
 ~make_predictions = {
-    arg audio_buffer, instrument_name;
+    arg instrument_name;
     var predictions = Buffer.alloc(s, numFrames: 1);
     ~set_prediction_action.();
-    ~play_prediction_synth.(
-        predictions,
-        audio_buffer,
-        instrument_name
-    );
+    ~play_prediction_synth.(predictions, instrument_name);
 };
 
 ~set_predictions_button = {
@@ -213,10 +210,8 @@
     var play_and_stop_predictions = {
         if (~synth == nil) {
             "Playing predictions...".postln;
-            ~make_predictions.(
-                audio_buffer,
-                instrument_name
-            );
+            ~audio_buffer = audio_buffer;
+            ~make_predictions.(instrument_name);
         };
     };
     ~set_button.(bounds, states, play_and_stop_predictions);
