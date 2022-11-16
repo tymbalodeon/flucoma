@@ -13,19 +13,6 @@
     );
 };
 
-~set_state = {
-    ~counter = 0;
-    ~timbre_data = FluidDataSet(s);
-    ~number_of_coefficients = 13;
-    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
-    ~labels = FluidLabelSet(s);
-    ~neural_network = ~get_neural_network.();
-    ~split_frame = 1783040;
-    ~window = Window("MFCC Classifier").front;
-    ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
-    ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
-};
-
 ~set_button = {
     arg bounds, states, action;
     Button(~window, bounds).states_(states).action_(action);
@@ -222,11 +209,6 @@
     ~set_button.(bounds, states, play_and_stop_predictions);
 };
 
-~reset_windows = {
-    Window.closeAll;
-    ServerMeter(s, 2, 2);
-};
-
 ~load_audio_file = {
     arg filename, start_frame = 0, num_frames = -1;
     var path = FluidFilesPath(filename);
@@ -272,8 +254,18 @@
 };
 
 s.waitForBoot {
-    ~reset_windows.();
-    ~set_state.();
+    Window.closeAll;
+    ServerMeter(s, 2, 2);
+    ~counter = 0;
+    ~timbre_data = FluidDataSet(s);
+    ~number_of_coefficients = 13;
+    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
+    ~labels = FluidLabelSet(s);
+    ~neural_network = ~get_neural_network.();
+    ~split_frame = 1783040;
+    ~window = Window("MFCC Classifier").front;
+    ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
+    ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
     ~set_window_buttons.(
         ~timbre_data,
         ~mfcc_buffer,
