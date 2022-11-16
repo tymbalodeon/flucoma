@@ -63,26 +63,31 @@
     );
 };
 
+~set_predictions_synth = {
+    arg audio, predictions;
+    var loudness = FluidLoudness.kr(audio)[0];
+    var threshold = -40;
+    var is_predicting = loudness >= threshold;
+    var trigger = Impulse.kr(30);
+    ~neural_network.kr(
+        trigger * is_predicting,
+        ~mfcc_buffer,
+        predictions
+    );
+    SendReply.kr(
+        trigger * is_predicting,
+        "/prediction",
+        FluidBufToKr.kr(predictions)
+    );
+    SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
+};
+
 ~get_synth = {
     arg make_predictions = false, predictions = nil;
     var audio = ~get_audio.();
     var mfcc = ~get_mfcc.(audio);
     if (make_predictions == true) {
-        var loudness = FluidLoudness.kr(audio)[0];
-        var threshold = -40;
-        var is_predicting = loudness >= threshold;
-        var trigger = Impulse.kr(30);
-        ~neural_network.kr(
-            trigger * is_predicting,
-            ~mfcc_buffer,
-            predictions
-        );
-        SendReply.kr(
-            trigger * is_predicting,
-            "/prediction",
-            FluidBufToKr.kr(predictions)
-        );
-        SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
+        ~set_predictions_synth.(audio, predictions);
     };
     FluidKrToBuf.kr(mfcc, ~mfcc_buffer);
     audio.dup;
