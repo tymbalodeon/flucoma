@@ -19,7 +19,7 @@
     ~number_of_coefficients = 13;
     ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
     ~labels = FluidLabelSet(s);
-    ~neural_network = ~get_neural_network.value;
+    ~neural_network = ~get_neural_network.();
     ~split_frame = 1783040;
     ~window = Window("MFCC Classifier").front;
     ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
@@ -42,7 +42,7 @@
         ~counter = ~counter + 1;
         "Added % %.".format(label, id).postln;
     };
-    ~set_button.value(bounds, states, add_point);
+    ~set_button.(bounds, states, add_point);
 };
 
 ~get_audio = {
@@ -66,8 +66,8 @@
 
 ~get_synth = {
     arg audio_buffer, make_predictions = false, predictions = nil;
-    var audio = ~get_audio.value(audio_buffer);
-    var mfcc = ~get_mfcc.value(audio);
+    var audio = ~get_audio.(audio_buffer);
+    var mfcc = ~get_mfcc.(audio);
     if (make_predictions == true) {
         var loudness = FluidLoudness.kr(audio)[0];
         var threshold = -40;
@@ -96,9 +96,9 @@
 
 ~analyze_and_play = {
     arg audio_buffer, instrument_name;
-    ~waveform = ~display_waveform.value(audio_buffer);
+    ~waveform = ~display_waveform.(audio_buffer);
     ~instrument_name = instrument_name;
-    ~synth = {~get_synth.value(audio_buffer)}.play;
+    ~synth = {~get_synth.(audio_buffer)}.play;
 };
 
 ~set_play_button = {
@@ -107,13 +107,13 @@
     var play = {
         if (~synth == nil) {
             "Playing % %...".format(instrument_name, type).postln;
-            ~analyze_and_play.value(
+            ~analyze_and_play.(
                 audio_buffer,
                 instrument_name
             );
         };
     };
-    ~set_button.value(bounds, states, play);
+    ~set_button.(bounds, states, play);
 };
 
 ~set_stop_playing_button = {
@@ -133,7 +133,7 @@
             ~waveform = nil;
         };
     };
-    ~set_button.value(bounds, states, ~stop_analyzing_and_playing);
+    ~set_button.(bounds, states, ~stop_analyzing_and_playing);
 };
 
 ~set_reset_button = {
@@ -147,7 +147,7 @@
         };
         "Points reset.".postln;
     };
-    ~set_button.value(bounds, states, ~reset);
+    ~set_button.(bounds, states, ~reset);
 };
 
 ~set_show_all_points_button = {
@@ -155,7 +155,7 @@
     var action = {
         ~timbre_data.print;
     };
-    ~set_button.value(
+    ~set_button.(
         bounds,
         [["Show all points"]],
         action
@@ -174,7 +174,7 @@
             ~neural_network.fit(~timbre_data, ~labels, post_loss);
         };
     };
-    ~set_button.value(bounds, states, train);
+    ~set_button.(bounds, states, train);
 };
 
 ~set_prediction_action = {
@@ -187,7 +187,7 @@
 
 ~play_prediction_synth = {
     arg predictions, audio_buffer, instrument_name;
-    ~waveform = ~display_waveform.value(audio_buffer);
+    ~waveform = ~display_waveform.(audio_buffer);
     ~instrument_name = instrument_name;
     ~synth = {~get_synth.(
         audio_buffer,
@@ -199,8 +199,8 @@
 ~make_predictions = {
     arg audio_buffer, instrument_name;
     var predictions = Buffer.alloc(s, numFrames: 1);
-    ~set_prediction_action.value;
-    ~play_prediction_synth.value(
+    ~set_prediction_action.();
+    ~play_prediction_synth.(
         predictions,
         audio_buffer,
         instrument_name
@@ -213,13 +213,13 @@
     var play_and_stop_predictions = {
         if (~synth == nil) {
             "Playing predictions...".postln;
-            ~make_predictions.value(
+            ~make_predictions.(
                 audio_buffer,
                 instrument_name
             );
         };
     };
-    ~set_button.value(bounds, states, play_and_stop_predictions);
+    ~set_button.(bounds, states, play_and_stop_predictions);
 };
 
 ~reset_windows = {
@@ -235,12 +235,12 @@
 
 ~get_training_audio = {
     arg filename;
-    ~load_audio_file.value(filename, num_frames: ~split_frame);
+    ~load_audio_file.(filename, num_frames: ~split_frame);
 };
 
 ~get_testing_audio = {
     arg filename;
-    ~load_audio_file.value(filename, start_frame: ~split_frame);
+    ~load_audio_file.(filename, start_frame: ~split_frame);
 };
 
 ~set_window_buttons = {
