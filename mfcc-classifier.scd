@@ -1,15 +1,33 @@
 (
-~reset_windows = {
-    Window.closeAll;
-    ServerMeter(s, 2, 2);
+~get_neural_network = {
+    var activation = FluidMLPRegressor.sigmoid;
+    FluidMLPClassifier(
+        s,
+        hiddenLayers: [5],
+        activation: activation,
+        maxIter: 1000,
+        learnRate: 0.1,
+        momentum: 0.9,
+        batchSize: 5,
+        validation: 0
+    );
+};
+
+~set_state = {
+    ~counter = 0;
+    ~timbre_data = FluidDataSet(s);
+    ~number_of_coefficients = 13;
+    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
+    ~labels = FluidLabelSet(s);
+    ~neural_network = ~get_neural_network.value;
+    ~split_frame = 1783040;
+    ~window = Window("MFCC Classifier").front;
 };
 
 ~display_waveform = {
     arg audio;
     FluidWaveform(audio);
 };
-
-~split_frame = 1783040;
 
 ~load_audio_file = {
     arg filename, start_frame = 0, num_frames = -1;
@@ -28,23 +46,22 @@
 };
 
 ~set_button = {
-    arg window, bounds, states, action;
-    Button(window, bounds).states_(states).action_(action);
+    arg bounds, states, action;
+    Button(~window, bounds).states_(states).action_(action);
 };
 
 ~set_add_points_button = {
-    arg window, bounds, state, timbre_data, mfcc_buffer, labels;
+    arg bounds;
     var states = [["Add point"]];
     var add_point = {
-        var id = "Sample %".format(state[\counter]);
-        var label = state[\instrument_name];
-        timbre_data.addPoint(id, mfcc_buffer);
-        labels.addLabel(id, label);
-        state[\counter] = state[\counter] + 1;
+        var id = "Sample %".format(~counter);
+        var label = ~instrument_name;
+        ~timbre_data.addPoint(id, ~mfcc_buffer);
+        ~labels.addLabel(id, label);
+        ~counter = ~counter + 1;
         "Added % %.".format(label, id).postln;
-        id;
     };
-    ~set_button.value(window, bounds, states, add_point);
+    ~set_button.value(bounds, states, add_point);
 };
 
 ~get_audio = {
@@ -67,30 +84,50 @@
 
 };
 
+~get_synth = {
+    arg audio_buffer, make_predictions = false, predictions = nil;
+    var audio = ~get_audio.value(audio_buffer);
+    var mfcc = ~get_mfcc.value(audio);
+    if (make_predictions == true) {
+        var loudness = FluidLoudness.kr(audio)[0];
+        var threshold = -40;
+        var is_predicting = loudness >= threshold;
+        var trigger = Impulse.kr(30);
+        ~neural_network.kr(
+            trigger * is_predicting,
+            ~mfcc_buffer,
+            predictions
+        );
+        SendReply.kr(
+            trigger * is_predicting,
+            "/prediction",
+            FluidBufToKr.kr(predictions)
+        );
+        SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
+    };
+    FluidKrToBuf.kr(mfcc, ~mfcc_buffer);
+    audio.dup;
+};
+
 ~analyze_and_play = {
-    arg audio_buffer, number_of_coefficients, mfcc_buffer, instrument_name;
-    ~state[\waveform] = ~display_waveform.value(audio_buffer);
-    ~state[\instrument_name] = instrument_name;
-    ~state[\synth] = {
-        var audio = ~get_audio.value(audio_buffer);
-        var mfcc = ~get_mfcc.value(audio);
-        FluidKrToBuf.kr(mfcc, mfcc_buffer);
-        audio.dup;
-    }.play;
+    arg audio_buffer, instrument_name;
+    ~waveform = ~display_waveform.value(audio_buffer);
+    ~instrument_name = instrument_name;
+    ~synth = {~get_synth.value(audio_buffer)}.play;
 };
 
 ~stop_analyzing_and_playing = {
-    if (~state.includesKey(\synth)) {
-        ~state[\synth].free;
-        ~state.removeAt(\synth);
+    if (~synth != nil) {
+        ~synth.free;
+        ~synth = nil;
         "Playing stopped.".postln;
     };
-    if (~state.includesKey(\instrument_name)) {
-        ~state.removeAt(\instrument_name);
+    if (~instrument_name != nil) {
+        ~instrument_name = nil;
     };
-    if (~state.includesKey(\waveform)) {
-        ~state[\waveform].close;
-        ~state.removeAt(\waveform);
+    if (~waveform != nil) {
+        ~waveform.close;
+        ~waveform = nil;
     };
 };
 
@@ -114,26 +151,23 @@
 };
 
 ~set_play_button = {
-    arg window, bounds, audio_buffer, instrument_name, type;
+    arg bounds, audio_buffer, instrument_name, type;
     var states = [["Play % %".format(instrument_name, type)]];
     var play = {
-        if (~state.includesKey(\synth).not()) {
+        if (~synth == nil) {
             "Playing % %...".format(instrument_name, type).postln;
             ~analyze_and_play.value(
                 audio_buffer,
-                ~number_of_coefficients,
-                ~mfcc_buffer,
                 instrument_name
             );
         };
     };
-    ~set_button.value(window, bounds, states, play);
+    ~set_button.value(bounds, states, play);
 };
 
 ~set_stop_playing_button = {
-    arg window, bounds;
+    arg bounds;
     ~set_button.value(
-        window,
         bounds,
         [["Stop"]],
         ~stop_analyzing_and_playing;
@@ -141,7 +175,7 @@
 };
 
 ~reset = {
-    ~state[\counter] = 0;
+    ~counter = 0;
     [~timbre_data, ~mfcc_buffer, ~labels].do {
         arg data;
         data.clear;
@@ -150,9 +184,8 @@
 };
 
 ~set_reset_button = {
-    arg window, bounds;
+    arg bounds;
     ~set_button.value(
-        window,
         bounds,
         [["Reset"]],
         ~reset
@@ -160,12 +193,11 @@
 };
 
 ~set_show_all_points_button = {
-    arg window, bounds, timbre_data;
+    arg bounds;
     var action = {
-        timbre_data.print;
+        ~timbre_data.print;
     };
     ~set_button.value(
-        window,
         bounds,
         [["Show all points"]],
         action
@@ -202,9 +234,8 @@
 };
 
 ~set_train_button = {
-    arg window, bounds;
+    arg bounds;
     ~set_button.value(
-        window,
         bounds,
         [["Train"]],
         ~train
@@ -225,39 +256,21 @@
 };
 
 ~play_prediction_synth = {
-    arg mfcc_buffer, neural_network, predictions, audio_buffer, instrument_name;
-    ~state[\waveform] = ~display_waveform.value(audio_buffer);
-    ~state[\instrument_name] = instrument_name;
-    ~state[\synth] = {
-        var audio = ~get_audio.value(audio_buffer);
-        var mfcc = ~get_mfcc.value(audio);
-        var loudness = FluidLoudness.kr(audio)[0];
-        var threshold = -40;
-        var is_predicting = loudness >= threshold;
-        var trigger = Impulse.kr(30);
-        FluidKrToBuf.kr(mfcc, mfcc_buffer);
-        neural_network.kr(
-            trigger * is_predicting,
-            mfcc_buffer,
-            predictions
-        );
-        SendReply.kr(
-            trigger * is_predicting,
-            "/prediction",
-            FluidBufToKr.kr(predictions)
-        );
-        SendReply.kr(trigger * (1 - is_predicting), "/prediction", -1);
-        audio.dup;
-    }.play;
+    arg predictions, audio_buffer, instrument_name;
+    ~waveform = ~display_waveform.value(audio_buffer);
+    ~instrument_name = instrument_name;
+    ~synth = {~get_synth.(
+        audio_buffer,
+        make_predictions: true,
+        predictions: predictions
+    )}.play;
 };
 
 ~make_predictions = {
-    arg mfcc_buffer, neural_network, audio_buffer, instrument_name;
+    arg audio_buffer, instrument_name;
     var predictions = ~get_predictions_buffer.value;
     ~set_prediction_action.value;
     ~play_prediction_synth.value(
-        mfcc_buffer,
-        neural_network,
         predictions,
         audio_buffer,
         instrument_name
@@ -265,106 +278,72 @@
 };
 
 ~set_predictions_button = {
-    arg window, bounds, mfcc_buffer, neural_network, audio_buffer, instrument_name;
+    arg bounds, audio_buffer, instrument_name;
     var states = [["Predict %".format(instrument_name)]];
     var play_and_stop_predictions = {
-        if (~state.includesKey(\synth).not()) {
+        if (~synth == nil) {
             "Playing predictions...".postln;
             ~make_predictions.value(
-                mfcc_buffer,
-                neural_network,
                 audio_buffer,
                 instrument_name
             );
         };
     };
-    ~set_button.value(window, bounds, states, play_and_stop_predictions);
+    ~set_button.value(bounds, states, play_and_stop_predictions);
 };
 
-~get_window = {
-    arg state, timbre_data, mfcc_buffer, labels, neural_network;
-    var name = "MFCC Classifier";
-    var window = Window(name).front;
-    ~set_add_points_button.value(
-        window,
-        Rect(230, 10, 200, 50),
-        state,
-        timbre_data,
-        mfcc_buffer,
-        labels
-    );
-    ~set_play_button.value(
-        window,
+~reset_windows = {
+    Window.closeAll;
+    ServerMeter(s, 2, 2);
+};
+
+~set_window_buttons = {
+    ~set_add_points_button.(Rect(230, 10, 200, 50));
+    ~set_play_button.(
         Rect(10, 10, 200, 50),
-        ~get_trombone_training_audio.value,
+        ~get_trombone_training_audio.(),
         \trombone,
         "training"
     );
-    ~set_play_button.value(
-        window,
+    ~set_play_button.(
         Rect(10, 60, 200, 50),
-        ~get_oboe_training_audio.value,
+        ~get_oboe_training_audio.(),
         \oboe,
         "training"
     );
-    ~set_reset_button.value(window, Rect(230, 60, 200, 50));
-    ~set_train_button.value(window, Rect(230, 160, 200, 50));
-    ~set_stop_playing_button.value(
-        window,
-        Rect(10, 230, 200, 50),
-        mfcc_buffer,
-        neural_network
-    );
-    ~set_predictions_button.value(
-        window,
+    ~set_reset_button.(Rect(230, 60, 200, 50));
+    ~set_train_button.(Rect(230, 160, 200, 50));
+    ~set_stop_playing_button.(Rect(10, 230, 200, 50));
+    ~set_predictions_button.(
         Rect(10, 110, 200, 50),
-        mfcc_buffer,
-        neural_network,
-        ~get_trombone_testing_audio.value,
+        ~get_trombone_testing_audio.(),
         "trombone"
     );
-    ~set_predictions_button.value(
-        window,
+    ~set_predictions_button.(
         Rect(10, 160, 200, 50),
-        mfcc_buffer,
-        neural_network,
-        ~get_oboe_testing_audio.value,
+        ~get_oboe_testing_audio.(),
         "oboe"
     );
-    ~set_show_all_points_button.value(
-        window,
-        Rect(230, 230, 200, 50),
-        timbre_data
-    );
+    ~set_show_all_points_button.(Rect(230, 230, 200, 50));
 };
 
-~predict_point = {
-    arg neural_network, mfcc_buffer;
-    var post_label = {
-        arg label;
-        label.postln;
-    };
-    neural_network.predictPoint(mfcc_buffer, post_label);
-};
-
-~load_mfcc = {
-    ~reset_windows.value;
-    ~state = Dictionary.newFrom([\counter, 0]);
-    ~timbre_data = FluidDataSet(s);
-    ~number_of_coefficients = 13;
-    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
-    ~labels = FluidLabelSet(s);
-    ~neural_network = ~get_neural_network.value;
-    ~get_window.value(
-        ~state,
+s.waitForBoot {
+    ~reset_windows.();
+    ~set_state.();
+    ~set_window_buttons.(
         ~timbre_data,
         ~mfcc_buffer,
         ~labels,
         ~neural_network
     );
 };
-
-s.waitForBoot {
-    ~load_mfcc.value;
-};
 )
+
+// ~predict_point = {
+//     arg neural_network;
+//     var post_label = {
+//         arg label;
+//         label.postln;
+//     };
+//     ~neural_network.predictPoint(~mfcc_buffer, post_label);
+// };
