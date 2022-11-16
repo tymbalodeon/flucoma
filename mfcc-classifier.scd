@@ -135,7 +135,7 @@
     ~set_button.value(
         window,
         bounds,
-        [["Stop playing"]],
+        [["Stop"]],
         ~stop_analyzing_and_playing;
     );
 };
@@ -225,8 +225,10 @@
 };
 
 ~play_prediction_synth = {
-    arg mfcc_buffer, neural_network, predictions, audio_buffer;
-    ~state[\predictions] = {
+    arg mfcc_buffer, neural_network, predictions, audio_buffer, instrument_name;
+    ~state[\waveform] = ~display_waveform.value(audio_buffer);
+    ~state[\instrument_name] = instrument_name;
+    ~state[\synth] = {
         var audio = ~get_audio.value(audio_buffer);
         var mfcc = ~get_mfcc.value(audio);
         var loudness = FluidLoudness.kr(audio)[0];
@@ -249,34 +251,31 @@
     }.play;
 };
 
-~stop_prediction_synth = {
-    ~state[\predictions].free;
-};
-
 ~make_predictions = {
-    arg mfcc_buffer, neural_network, audio_buffer;
+    arg mfcc_buffer, neural_network, audio_buffer, instrument_name;
     var predictions = ~get_predictions_buffer.value;
     ~set_prediction_action.value;
     ~play_prediction_synth.value(
         mfcc_buffer,
         neural_network,
         predictions,
-        audio_buffer
+        audio_buffer,
+        instrument_name
     );
 };
 
 ~set_predictions_button = {
     arg window, bounds, mfcc_buffer, neural_network, audio_buffer, instrument_name;
-    var states = [["Predict %".format(instrument_name)], ["Stop predicting"]];
+    var states = [["Predict %".format(instrument_name)]];
     var play_and_stop_predictions = {
-        arg button;
-        var playing = button.value;
-        if (playing == 0) {
-            "Predictions stopped.".postln;
-            ~stop_prediction_synth.value();
-        } {
+        if (~state.includesKey(\synth).not()) {
             "Playing predictions...".postln;
-            ~make_predictions.value(mfcc_buffer, neural_network, audio_buffer);
+            ~make_predictions.value(
+                mfcc_buffer,
+                neural_network,
+                audio_buffer,
+                instrument_name
+            );
         };
     };
     ~set_button.value(window, bounds, states, play_and_stop_predictions);
@@ -310,20 +309,6 @@
     );
     ~set_reset_button.value(window, Rect(230, 60, 200, 50));
     ~set_train_button.value(window, Rect(230, 160, 200, 50));
-    ~set_play_button.value(
-        window,
-        Rect(10, 110, 200, 50),
-        ~get_trombone_testing_audio.value,
-        \trombone,
-        "testing"
-    );
-    ~set_play_button.value(
-        window,
-        Rect(10, 160, 200, 50),
-        ~get_oboe_testing_audio.value,
-        \oboe,
-        "testing"
-    );
     ~set_stop_playing_button.value(
         window,
         Rect(10, 230, 200, 50),
@@ -332,7 +317,7 @@
     );
     ~set_predictions_button.value(
         window,
-        Rect(230, 230, 200, 50),
+        Rect(10, 110, 200, 50),
         mfcc_buffer,
         neural_network,
         ~get_trombone_testing_audio.value,
@@ -340,7 +325,7 @@
     );
     ~set_predictions_button.value(
         window,
-        Rect(230, 280, 200, 50),
+        Rect(10, 160, 200, 50),
         mfcc_buffer,
         neural_network,
         ~get_oboe_testing_audio.value,
@@ -348,7 +333,7 @@
     );
     ~set_show_all_points_button.value(
         window,
-        Rect(450, 280, 200, 50),
+        Rect(230, 230, 200, 50),
         timbre_data
     );
 };
