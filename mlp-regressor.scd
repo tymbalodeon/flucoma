@@ -56,53 +56,49 @@
 };
 
 ~get_save_file_dialog = {
-    {
-        var write_json_data = {
-            arg folder;
-            var x_y_data_json_file = ~get_x_y_data_json_file.(folder);
-            var synth_data_json_file = ~get_synth_data_json_file.(folder);
-            ~x_y_data.write(x_y_data_json_file);
-            ~synth_data.write(synth_data_json_file);
-        };
-        FileDialog(
-            write_json_data,
-            cancelFunc: {},
-            fileMode: 2,
-            acceptMode: 0,
-            stripResult: true
-        )
+    var write_json_data = {
+        arg folder;
+        var x_y_data_json_file = ~get_x_y_data_json_file.(folder);
+        var synth_data_json_file = ~get_synth_data_json_file.(folder);
+        ~x_y_data.write(x_y_data_json_file);
+        ~synth_data.write(synth_data_json_file);
     };
+    FileDialog(
+        write_json_data,
+        cancelFunc: {},
+        fileMode: 2,
+        acceptMode: 0,
+        stripResult: true
+    )
 };
 
 ~set_save_data_button = {
     var bounds = Rect(730, 40, 100, 20);
     var states = [["Save Data"]];
-    var save_data = ~get_save_file_dialog.();
+    var save_data = ~get_save_file_dialog;
     ~set_button.(bounds, states, save_data);
 };
 
 ~get_load_file_dialog = {
-    {
-        var write_json_data = {
-            arg folder;
-            var x_y_data_json_file = ~get_x_y_data_json_file.(folder);
-            var synth_data_json_file = ~get_synth_data_json_file.(folder);
-            ~x_y_data.read(x_y_data_json_file);
-            ~synth_data.read(synth_data_json_file);
-        };
-        FileDialog(
-            write_json_data,
-            fileMode: 2,
-            acceptMode: 0,
-            stripResult: true
-        );
+    var write_json_data = {
+        arg folder;
+        var x_y_data_json_file = ~get_x_y_data_json_file.(folder);
+        var synth_data_json_file = ~get_synth_data_json_file.(folder);
+        ~x_y_data.read(x_y_data_json_file);
+        ~synth_data.read(synth_data_json_file);
     };
+    FileDialog(
+        write_json_data,
+        fileMode: 2,
+        acceptMode: 0,
+        stripResult: true
+    );
 };
 
 ~set_load_data_button = {
     var bounds = Rect(730, 70, 100, 20);
     var states = [["Load Data"]];
-    var load_data = ~get_load_file_dialog.();
+    var load_data = ~get_load_file_dialog;
     ~set_button.(bounds, states, load_data);
 };
 
@@ -122,40 +118,36 @@
 };
 
 ~get_save_regressor_dialog = {
-    {
-        var write_json_data = {
-            arg path;
-            var extension = PathName(path).extension;
-            if (extension != "json") {
-                path = "%.json".format(path);
-            };
-            ~mlp_regressor.write(path);
+    var write_json_data = {
+        arg path;
+        var extension = PathName(path).extension;
+        if (extension != "json") {
+            path = "%.json".format(path);
         };
-        Dialog.savePanel(write_json_data, path: "mlp-regressor.json");
+        ~mlp_regressor.write(path);
     };
+    Dialog.savePanel(write_json_data, path: "mlp-regressor.json");
 };
 
 ~set_save_mlp_button = {
     var bounds = Rect(730, 130, 100, 20);
     var states = [["Save MLP"]];
-    var save_mlp = ~get_save_regressor_dialog.();
+    var save_mlp = ~get_save_regressor_dialog;
     ~set_button.(bounds, states, save_mlp);
 };
 
 ~get_load_regressor_dialog = {
-    {
-        var read_json_data = {
-            arg path;
-            ~mlp_regressor.read(path);
-        };
-        Dialog.openPanel(read_json_data);
+    var read_json_data = {
+        arg path;
+        ~mlp_regressor.read(path);
     };
+    Dialog.openPanel(read_json_data);
 };
 
 ~set_load_mlp_button = {
     var bounds = Rect(730, 160, 100, 20);
     var states = [["Load MLP"]];
-    var load_mlp = ~get_load_regressor_dialog.();
+    var load_mlp = ~get_load_regressor_dialog;
     ~set_button.(bounds, states, load_mlp);
 };
 
