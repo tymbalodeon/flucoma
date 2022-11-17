@@ -26,11 +26,6 @@
     .value_(0.5.dup(10));
 };
 
-~set_button = {
-    arg bounds, states, action;
-    Button(~window, bounds).states_(states).action_(action);
-};
-
 ~set_add_points_button = {
     var bounds = Rect(730, 10, 100, 20);
     var states = [["Add Points"]];
@@ -113,7 +108,7 @@
 ~set_train_button = {
     var bounds = Rect(730, 100, 100, 20);
     var states = [["Train"]];
-    var train = ~train_regressor.();
+    var train = ~train_regressor;
     ~set_button.(bounds, states, train);
 };
 
@@ -260,11 +255,6 @@
     Slider2D(~window, bounds).action_(set_x_y_values);
 };
 
-~reset_windows = {
-    Window.closeAll;
-    ServerMeter(s, 2, 2);
-};
-
 ~set_state = {
     ~counter = 0;
     ~window = Window("MLP Regressor").front;
@@ -279,6 +269,7 @@
 };
 
 s.waitForBoot {
+    "helpers.scd".load;
     ~reset_windows.();
     ~set_state.();
     ~synth = ~play_synth.();

@@ -13,11 +13,6 @@
     );
 };
 
-~set_button = {
-    arg bounds, states, action;
-    Button(~window, bounds).states_(states).action_(action);
-};
-
 ~set_add_points_button = {
     arg bounds;
     var states = [["Add point"]];
@@ -243,11 +238,6 @@
     ~set_show_all_points_button.(Rect(230, 230, 200, 50));
 };
 
-~reset_windows = {
-    Window.closeAll;
-    ServerMeter(s, 2, 2);
-};
-
 ~set_state = {
     ~counter = 0;
     ~number_of_coefficients = 13;
@@ -261,6 +251,7 @@
 };
 
 s.waitForBoot {
+    "helpers.scd".load;
     ~reset_windows.();
     ~set_state.();
     ~get_window.();
