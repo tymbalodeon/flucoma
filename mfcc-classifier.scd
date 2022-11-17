@@ -187,7 +187,7 @@
     var post_message = {
         arg message;
         var prediction = message[3];
-        switch(
+        switch (
             prediction,
             0.0, {
                 "trombone".postln;
