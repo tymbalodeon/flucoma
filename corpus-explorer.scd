@@ -47,13 +47,11 @@ FluidBufOnsetSlice.processBlocking(
     }.play;
 };
 
-"HELLO".postln;
-~indices.numFrames.postln;
-// fork {
-//     (~indices.numFrames - 1).do {
-//         arg index;
-//         ~play_slice.(index);
-//         1.wait;
-//     };
-// };
+fork {
+    (~indices.numFrames - 1).do {
+        arg index;
+        ~play_slice.(index);
+        1.wait;
+    };
+};
 )
