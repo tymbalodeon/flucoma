@@ -56,11 +56,7 @@
     var threshold = -40;
     var is_predicting = loudness >= threshold;
     var trigger = Impulse.kr(30);
-    ~neural_network.kr(
-        trigger * is_predicting,
-        ~mfcc_buffer,
-        predictions
-    );
+    ~neural_network.kr(trigger * is_predicting, ~mfcc_buffer, predictions);
     SendReply.kr(
         trigger * is_predicting,
         "/prediction",
@@ -114,19 +110,15 @@
     var stop_analyzing_and_playing = {
         if (~synth != nil) {
             ~synth.free;
-            ~synth = nil;
             "Playing stopped.".postln;
         };
         if (~waveform != nil) {
             ~waveform.close;
-            ~waveform = nil;
         };
-        if (~audio_buffer != nil) {
-            ~audio_buffer = nil;
-        };
-        if (~instrument_name != nil) {
-            ~instrument_name = nil;
-        };
+        ~synth = nil;
+        ~waveform = nil;
+        ~audio_buffer = nil;
+        ~instrument_name = nil;
     };
     ~set_button.(bounds, states, stop_analyzing_and_playing);
 };
@@ -147,14 +139,11 @@
 
 ~set_show_all_points_button = {
     arg bounds;
+    var states = [["Show all points"]];
     var action = {
         ~timbre_data.print;
     };
-    ~set_button.(
-        bounds,
-        [["Show all points"]],
-        action
-    )
+    ~set_button.(bounds, states, action);
 };
 
 ~set_train_button = {
@@ -225,7 +214,8 @@
     ~load_audio_file.(filename, start_frame: ~split_frame);
 };
 
-~set_window_buttons = {
+~get_window = {
+    ~window = Window("MFCC Classifier").front;
     ~set_add_points_button.(Rect(230, 10, 200, 50));
     ~set_play_button.(
         Rect(10, 10, 200, 50),
@@ -253,25 +243,27 @@
     ~set_show_all_points_button.(Rect(230, 230, 200, 50));
 };
 
-s.waitForBoot {
+~reset_windows = {
     Window.closeAll;
     ServerMeter(s, 2, 2);
+};
+
+~set_state = {
     ~counter = 0;
-    ~timbre_data = FluidDataSet(s);
     ~number_of_coefficients = 13;
     ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
+    ~timbre_data = FluidDataSet(s);
     ~labels = FluidLabelSet(s);
     ~neural_network = ~get_neural_network.();
     ~split_frame = 1783040;
-    ~window = Window("MFCC Classifier").front;
     ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
     ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
-    ~set_window_buttons.(
-        ~timbre_data,
-        ~mfcc_buffer,
-        ~labels,
-        ~neural_network
-    );
+};
+
+s.waitForBoot {
+    ~reset_windows.();
+    ~set_state.();
+    ~get_window.();
 };
 )
 
