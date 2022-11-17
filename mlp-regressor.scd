@@ -55,10 +55,8 @@
     folder +/+ "synth-data.json";
 };
 
-~set_save_data_button = {
-    var bounds = Rect(730, 40, 100, 20);
-    var states = [["Save Data"]];
-    var save_data = {
+~get_save_file_dialog = {
+    {
         var write_json_data = {
             arg folder;
             var x_y_data_json_file = ~get_x_y_data_json_file.(folder);
@@ -74,13 +72,17 @@
             stripResult: true
         )
     };
+};
+
+~set_save_data_button = {
+    var bounds = Rect(730, 40, 100, 20);
+    var states = [["Save Data"]];
+    var save_data = ~get_save_file_dialog.();
     ~set_button.(bounds, states, save_data);
 };
 
-~set_load_data_button = {
-    var bounds = Rect(730, 70, 100, 20);
-    var states = [["Load Data"]];
-    var load_data = {
+~get_load_file_dialog = {
+    {
         var write_json_data = {
             arg folder;
             var x_y_data_json_file = ~get_x_y_data_json_file.(folder);
@@ -95,26 +97,32 @@
             stripResult: true
         );
     };
+};
+
+~set_load_data_button = {
+    var bounds = Rect(730, 70, 100, 20);
+    var states = [["Load Data"]];
+    var load_data = ~get_load_file_dialog.();
     ~set_button.(bounds, states, load_data);
+};
+
+~train_regressor = {
+    var post_loss = {
+        arg loss;
+        "Training loss: %".format(loss).postln;
+    };
+    ~mlp_regressor.fit(~x_y_data, ~synth_data, post_loss);
 };
 
 ~set_train_button = {
     var bounds = Rect(730, 100, 100, 20);
     var states = [["Train"]];
-    var train = {
-        var post_loss = {
-            arg loss;
-            "Training loss: %".format(loss).postln;
-        };
-        ~mlp_regressor.fit(~x_y_data, ~synth_data, post_loss);
-    };
+    var train = ~train_regressor.();
     ~set_button.(bounds, states, train);
 };
 
-~set_save_mlp_button = {
-    var bounds = Rect(730, 130, 100, 20);
-    var states = [["Save MLP"]];
-    var save_mlp = {
+~get_save_regressor_dialog = {
+    {
         var write_json_data = {
             arg path;
             var extension = PathName(path).extension;
@@ -125,29 +133,38 @@
         };
         Dialog.savePanel(write_json_data, path: "mlp-regressor.json");
     };
+};
+
+~set_save_mlp_button = {
+    var bounds = Rect(730, 130, 100, 20);
+    var states = [["Save MLP"]];
+    var save_mlp = ~get_save_regressor_dialog.();
     ~set_button.(bounds, states, save_mlp);
 };
 
-~set_load_mlp_button = {
-    var bounds = Rect(730, 160, 100, 20);
-    var states = [["Load MLP"]];
-    var load_mlp = {
+~get_load_regressor_dialog = {
+    {
         var read_json_data = {
             arg path;
             ~mlp_regressor.read(path);
         };
         Dialog.openPanel(read_json_data);
     };
+};
+
+~set_load_mlp_button = {
+    var bounds = Rect(730, 160, 100, 20);
+    var states = [["Load MLP"]];
+    var load_mlp = ~get_load_regressor_dialog.();
     ~set_button.(bounds, states, load_mlp);
 };
 
 ~set_predicting_button = {
-    arg synth;
     var bounds = Rect(730, 190, 100, 20);
     var states = [["Not Predicting"], ["Predicting"]];
     var set_state = {
         arg button;
-        synth.set(\predicting, button.());
+        ~synth.set(\predicting, button.());
     };
     ~set_button.(bounds, states, set_state);
 };
@@ -160,7 +177,7 @@
     ~set_train_button.();
     ~set_save_mlp_button.();
     ~set_load_mlp_button.();
-    ~set_predicting_button.(~synth);
+    ~set_predicting_button.();
 };
 
 ~get_loudness = {
@@ -206,8 +223,20 @@
         var loudness_1 = ~get_loudness.(feed_1);
         var loudness_2 = ~get_loudness.(feed_2);
         var base = 69;
-        var osc_1 = ~get_moog_ff.(feed_1, base, value, loudness_1, 0, 1, 2, 3, 4);
-        var osc_2 = ~get_moog_ff.(feed_2, base, value, loudness_2, 5, 6, 7, 8, 9);
+        var osc_1 = ~get_moog_ff.(
+            feed_1,
+            base,
+            value,
+            loudness_1,
+            0, 1, 2, 3, 4
+        );
+        var osc_2 = ~get_moog_ff.(
+            feed_2,
+            base,
+            value,
+            loudness_2,
+            5, 6, 7, 8, 9
+        );
         var signals = [osc_1, osc_2];
         ~mlp_regressor.kr(trigger * predicting, ~x_y_buffer, ~synth_buffer);
         SendReply.kr(
@@ -239,19 +268,27 @@
     Slider2D(~window, bounds).action_(set_x_y_values);
 };
 
-s.waitForBoot {
+~reset_windows = {
     Window.closeAll;
     ServerMeter(s, 2, 2);
+};
+
+~set_state = {
     ~counter = 0;
     ~window = Window("MLP Regressor").front;
     ~synth_buffer = Buffer.alloc(s, numFrames: 10);
-    ~synth_slider = ~get_synth_slider.value(~synth_buffer);
+    ~synth_slider = ~get_synth_slider.value();
     ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
     ~synth_data = FluidDataSet(s);
     ~x_y_data = FluidDataSet(s);
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
     ~set_params_changed_action.();
+};
+
+s.waitForBoot {
+    ~reset_windows.();
+    ~set_state.();
     ~synth = ~play_synth.();
 };
 )
