@@ -101,7 +101,7 @@
 
 ~set_stop_playing_button = {
     arg bounds;
-    var states = [["Stop"]];
+    var states = [["Stop", Color.white, Color.new255(139, 0, 0)]];
     var stop_analyzing_and_playing = {
         if (~synth != nil) {
             ~synth.free;
