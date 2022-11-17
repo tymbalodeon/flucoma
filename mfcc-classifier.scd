@@ -161,30 +161,6 @@
     ~set_button.(bounds, states, train);
 };
 
-~set_prediction_action = {
-    var post_message = {
-        arg message;
-        message[3].postln;
-    };
-    OSCdef(\predictions, post_message, "/prediction");
-};
-
-~play_prediction_synth = {
-    arg predictions, instrument_name;
-    ~waveform = ~display_waveform.();
-    ~instrument_name = instrument_name;
-    ~synth = {
-        ~get_synth.(make_predictions: true, predictions: predictions);
-    }.play;
-};
-
-~make_predictions = {
-    arg instrument_name;
-    var predictions = Buffer.alloc(s, numFrames: 1);
-    ~set_prediction_action.();
-    ~play_prediction_synth.(predictions, instrument_name);
-};
-
 ~set_predict_point_button = {
     arg bounds;
     var states = [["Predict"]];
@@ -196,6 +172,40 @@
         ~neural_network.predictPoint(~mfcc_buffer, post_label);
     };
     ~set_button.(bounds, states, predict_point);
+};
+
+~play_prediction_synth = {
+    arg predictions, instrument_name;
+    ~waveform = ~display_waveform.();
+    ~instrument_name = instrument_name;
+    ~synth = {
+        ~get_synth.(make_predictions: true, predictions: predictions);
+    }.play;
+};
+
+~set_prediction_action = {
+    var post_message = {
+        arg message;
+        var prediction = message[3];
+        switch(
+            prediction,
+            0.0, {
+                "trombone".postln;
+            }, 1.0, {
+                "oboe".postln;
+            }, {
+                "silence".postln;
+            };
+        );
+    };
+    OSCdef(\predictions, post_message, "/prediction");
+};
+
+~make_predictions = {
+    arg instrument_name;
+    var predictions = Buffer.alloc(s, numFrames: 1);
+    ~set_prediction_action.();
+    ~play_prediction_synth.(predictions, instrument_name);
 };
 
 ~set_predictions_button = {
