@@ -185,19 +185,6 @@
     ~play_prediction_synth.(predictions, instrument_name);
 };
 
-~set_predictions_button = {
-    arg bounds, audio_buffer, instrument_name;
-    var states = [["Predict %".format(instrument_name)]];
-    var play_and_stop_predictions = {
-        if (~synth == nil) {
-            "Playing predictions...".postln;
-            ~audio_buffer = audio_buffer;
-            ~make_predictions.(instrument_name);
-        };
-    };
-    ~set_button.(bounds, states, play_and_stop_predictions);
-};
-
 ~set_predict_point_button = {
     arg bounds;
     var states = [["Predict"]];
@@ -209,6 +196,19 @@
         ~neural_network.predictPoint(~mfcc_buffer, post_label);
     };
     ~set_button.(bounds, states, predict_point);
+};
+
+~set_predictions_button = {
+    arg bounds, audio_buffer, instrument_name;
+    var states = [["Predict %".format(instrument_name)]];
+    var play_and_stop_predictions = {
+        if (~synth == nil) {
+            "Playing predictions...".postln;
+            ~audio_buffer = audio_buffer;
+            ~make_predictions.(instrument_name);
+        };
+    };
+    ~set_button.(bounds, states, play_and_stop_predictions);
 };
 
 ~load_audio_file = {
@@ -228,8 +228,9 @@
 };
 
 ~get_window = {
+    var trombone_testing_audio = ~get_testing_audio.(~trombone_file);
+    var oboe_testing_audio = ~get_testing_audio.(~oboe_file);
     ~window = Window("MFCC Classifier").front;
-    ~set_add_points_button.(Rect(230, 10, 200, 50));
     ~set_play_button.(
         Rect(10, 10, 200, 50),
         ~get_training_audio.(~trombone_file),
@@ -240,23 +241,34 @@
         ~get_training_audio.(~oboe_file),
         "oboe"
     );
-    ~set_reset_button.(Rect(230, 60, 200, 50));
-    ~set_train_button.(Rect(230, 110, 200, 50));
-    ~set_stop_playing_button.(Rect(10, 230, 200, 50));
     ~set_play_button.(
         Rect(10, 110, 200, 50),
-        ~get_testing_audio.(~trombone_file),
+        trombone_testing_audio,
         "trombone",
         testing: true
     );
     ~set_play_button.(
         Rect(10, 160, 200, 50),
-        ~get_testing_audio.(~oboe_file),
+        oboe_testing_audio,
         "oboe",
         testing: true
     );
-    ~set_show_all_points_button.(Rect(230, 230, 200, 50));
-    ~set_predict_point_button.(Rect(230, 160, 200, 50));
+    ~set_stop_playing_button.(Rect(10, 210, 200, 50));
+    ~set_add_points_button.(Rect(220, 10, 200, 50));
+    ~set_reset_button.(Rect(220, 60, 200, 50));
+    ~set_train_button.(Rect(220, 110, 200, 50));
+    ~set_show_all_points_button.(Rect(220, 210, 200, 50));
+    ~set_predict_point_button.(Rect(220, 160, 200, 50));
+    ~set_predictions_button.(
+        Rect(430, 10, 200, 50),
+        trombone_testing_audio,
+        "trombone"
+    );
+    ~set_predictions_button.(
+        Rect(430, 60, 200, 50),
+        oboe_testing_audio,
+        "oboe"
+    );
 };
 
 ~set_state = {
