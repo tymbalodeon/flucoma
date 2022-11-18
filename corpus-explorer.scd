@@ -21,12 +21,7 @@
         var rate = BufRateScale.ir(~audio_file);
         var start_sample = Index.kr(~indices, index);
         var stop_sample = Index.kr(~indices, index + 1);
-        var phasor = Phasor.ar(
-            0,
-            rate,
-            start_sample,
-            stop_sample
-        );
+        var phasor = Phasor.ar(0, rate, start_sample, stop_sample);
         var audio = BufRd.ar(1, ~audio_file, phasor);
         var duration = (stop_sample - start_sample) / rate;
         var env = Env([0 , 1, 1, 0], [0.03, duration - 0.06, 0.03]);
@@ -60,8 +55,12 @@ s.waitForBoot {
     ~indices.loadToFloatArray(
         action: {
             arg float_array;
-            float_array.postln;
-            float_array.size.postln;
+            float_array.do({
+                arg slice_index, count_index;
+                var count = count_index + 1;
+                "Slice %: %".format(count, slice_index).postln;
+            });
+            "Found % slices.".format(float_array.size).postln;
         };
     );
     ~play_slices.();
