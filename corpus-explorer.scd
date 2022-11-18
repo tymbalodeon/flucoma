@@ -17,7 +17,7 @@
         s,
         ~audio_file,
         metric: 9,
-        threshold: 0.5,
+        threshold: 0.05,
         indices: ~indices,
     );
 };
@@ -70,11 +70,6 @@
     mean_centroids.loadToFloatArray(
         action: {
             arg float_array;
-            float_array.do {
-                arg slice_index, count_index;
-                var count = count_index + 1;
-                "Slice %: %".format(count, slice_index).postln;
-            };
             "Found % slices.".format(float_array.size).postln;
             ~mean_centroids = float_array;
         };
@@ -124,7 +119,7 @@ s.waitForBoot {
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
     ~get_slices.();
-    ~play_slices.();
     ~display_slices.();
+    ~play_slices.();
 };
 )
