@@ -11,10 +11,6 @@
     }.play;
 };
 
-~display_waveform = {
-    FluidWaveform(~audio_file, ~indices);
-};
-
 ~analyze_audio = {
     ~indices = Buffer(s);
     FluidBufOnsetSlice.processBlocking(
@@ -76,16 +72,25 @@
     );
 };
 
+~display_slices = {
+    FluidWaveform(~audio_file, ~indices);
+};
+
 ~play_slice = {
     arg index, amplitude = 0.1;
     {
         var rate = BufRateScale.ir(~audio_file);
-        var start_sample = Index.kr(~indices, index);
-        var stop_sample = Index.kr(~indices, index + 1);
-        var phasor = Phasor.ar(0, rate, start_sample, stop_sample);
+        var start = Index.kr(~indices, index);
+        var stop = Index.kr(~indices, index + 1);
+        var phasor = Phasor.ar(0, rate, start, stop);
         var audio = BufRd.ar(1, ~audio_file, phasor);
-        var duration = (stop_sample - start_sample) / rate;
-        var env = Env([0 , 1, 1, 0], [0.03, duration - 0.06, 0.03]);
+        var duration = (stop - start) / rate;
+        var fade_time = 0.03;
+        var total_fade_time = fade_time * 2;
+        var env = Env(
+            [0, 1, 1, 0],
+            [fade_time, duration - total_fade_time, fade_time]
+        );
         var env_gen = EnvGen.kr(env, doneAction: 2);
         audio.dup * env_gen * amplitude;
     }.play;
@@ -106,5 +111,5 @@ s.waitForBoot {
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
     ~get_slices.();
-    ~play_slices.();
+    ~display_slices.();
 };
