@@ -112,6 +112,7 @@
     fork {
         ~mean_centroids.order.do {
             arg index;
+            "Playing Slice %...".format(index).postln;
             ~play_slice.(index);
             1.wait;
         };
