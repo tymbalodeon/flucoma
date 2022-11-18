@@ -2,20 +2,24 @@
 ~play_with_slices = {
     {
         var audio = PlayBuf.ar(
-            1,
-            ~audio_file,
-            BufRateScale.ir(~audio_file),
+            numChannels: 1,
+            bufnum: ~audio_file,
+            rate: BufRateScale.ir(~audio_file),
             doneAction: 2
         );
-        var slices = FluidOnsetSlice.ar(audio, 9, 0.5);
+        var slices = FluidOnsetSlice.ar(
+            in: audio,
+            metric: \rcomplex,
+            threshold: 0.5
+        );
         [audio, slices];
     }.play;
 };
 
 ~get_onset_slices = {
     FluidBufOnsetSlice.processBlocking(
-        s,
-        ~audio_file,
+        server: s,
+        source: ~audio_file,
         metric: 9,
         threshold: 0.05,
         indices: ~indices,

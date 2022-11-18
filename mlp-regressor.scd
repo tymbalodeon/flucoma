@@ -2,7 +2,7 @@
 ~get_mlp_regressor = {
     var activation = FluidMLPRegressor.sigmoid;
     FluidMLPRegressor(
-        s,
+        server: s,
         hiddenLayers: [7],
         activation: activation,
         outputActivation: activation,
