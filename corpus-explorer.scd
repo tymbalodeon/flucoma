@@ -77,14 +77,13 @@
 };
 
 ~play_slice = {
-    arg index, amplitude = 0.1;
+    arg index;
     {
-        var rate = BufRateScale.ir(~audio_file);
         var start = Index.kr(~indices, index);
         var stop = Index.kr(~indices, index + 1);
-        var phasor = Phasor.ar(0, rate, start, stop);
-        var audio = BufRd.ar(1, ~audio_file, phasor);
-        var duration = (stop - start) / rate;
+        var phasor = Phasor.ar(0, BufRateScale.ir(~audio_file), start, stop);
+        var audio_file = BufRd.ar(1, ~audio_file, phasor);
+        var duration = (stop - start) / BufSampleRate.ir(~audio_file);
         var fade_time = 0.03;
         var total_fade_time = fade_time * 2;
         var env = Env(
@@ -92,7 +91,7 @@
             [fade_time, duration - total_fade_time, fade_time]
         );
         var env_gen = EnvGen.kr(env, doneAction: 2);
-        audio.dup * env_gen * amplitude;
+        audio_file.dup * env_gen;
     }.play;
 };
 
@@ -111,5 +110,6 @@ s.waitForBoot {
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
     ~get_slices.();
+    ~play_slices.();
     ~display_slices.();
 };
