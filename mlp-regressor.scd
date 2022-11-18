@@ -1,4 +1,3 @@
-(
 ~get_mlp_regressor = {
     var activation = FluidMLPRegressor.sigmoid;
     FluidMLPRegressor(
@@ -274,4 +273,3 @@ s.waitForBoot {
     ~set_state.();
     ~synth = ~play_synth.();
 };
-)

@@ -1,4 +1,3 @@
-(
 ~get_neural_network = {
     var activation = FluidMLPRegressor.sigmoid;
     FluidMLPClassifier(
@@ -299,4 +298,3 @@ s.waitForBoot {
     ~set_state.();
     ~get_window.();
 };
-)
