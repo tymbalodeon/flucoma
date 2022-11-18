@@ -86,10 +86,8 @@
         var duration = (stop - start) / BufSampleRate.ir(~audio_file);
         var fade_time = 0.03;
         var total_fade_time = fade_time * 2;
-        var env = Env(
-            [0, 1, 1, 0],
-            [fade_time, duration - total_fade_time, fade_time]
-        );
+        var non_fade_time = duration - total_fade_time;
+        var env = Env([0, 1, 1, 0], [fade_time, non_fade_time, fade_time]);
         var env_gen = EnvGen.kr(env, doneAction: 2);
         audio_file.dup * env_gen;
     }.play;
