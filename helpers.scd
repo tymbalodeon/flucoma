@@ -1,4 +1,3 @@
-(
 ~reset_windows = {
     Window.closeAll;
     ServerMeter(s, 2, 2);
@@ -8,4 +7,3 @@
     arg bounds, states, action;
     Button(~window, bounds).states_(states).action_(action);
 };
-)
