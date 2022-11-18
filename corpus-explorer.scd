@@ -1,3 +1,4 @@
+(
 ~play_with_slices = {
     {
         var audio = PlayBuf.ar(
@@ -11,8 +12,7 @@
     }.play;
 };
 
-~analyze_audio = {
-    ~indices = Buffer(s);
+~get_onset_slices = {
     FluidBufOnsetSlice.processBlocking(
         s,
         ~audio_file,
@@ -22,54 +22,69 @@
     );
 };
 
-~get_slices = {
-    ~analyze_audio.();
-    ~indices.loadToFloatArray(
+~get_spectral_centroid = {
+    arg start, number_of_frames, spectral_centroids;
+    FluidBufSpectralShape.processBlocking(
+        server: s,
+        source: ~audio_file,
+        startFrame: start,
+        numFrames: number_of_frames,
+        features: spectral_centroids,
+        select: [\centroid]
+    );
+};
+
+~get_mean_centroid = {
+    arg spectral_centroids, stats;
+    FluidBufStats.processBlocking(
+        server: s,
+        source: spectral_centroids,
+        stats: stats,
+        select: [\mean]
+    );
+};
+
+~add_to_mean_centroids_array = {
+    arg stats, mean_centroids, index;
+    FluidBufCompose.processBlocking(
+        server: s,
+        source: stats,
+        destination: mean_centroids,
+        destStartFrame: index
+    );
+};
+
+~get_mean_centroids = {
+    arg float_array;
+    var spectral_centroids = Buffer(s);
+    var stats = Buffer(s);
+    var mean_centroids = Buffer(s);
+    float_array.doAdjacentPairs{
+        arg start, end, index;
+        var number_of_frames = end - start;
+        ~get_spectral_centroid.(start, number_of_frames, spectral_centroids);
+        ~get_mean_centroid.(spectral_centroids, stats);
+        ~add_to_mean_centroids_array.(stats, mean_centroids, index);
+    };
+    s.sync;
+    mean_centroids.loadToFloatArray(
         action: {
             arg float_array;
-            var spectral_centroid = Buffer(s);
-            var stats = Buffer(s);
-            var mean_centroids = Buffer(s);
-            float_array.doAdjacentPairs{
-                arg start, end, index;
-                var number_of_frames = end - start;
-                FluidBufSpectralShape.processBlocking(
-                    s,
-                    ~audio_file,
-                    start,
-                    number_of_frames,
-                    features: spectral_centroid,
-                    select: [\centroid]
-                );
-                FluidBufStats.processBlocking(
-                    s,
-                    spectral_centroid,
-                    stats: stats,
-                    select: [\mean]
-                );
-                FluidBufCompose.processBlocking(
-                    s,
-                    stats,
-                    destination: mean_centroids,
-                    destStartFrame:
-                    index
-                );
+            float_array.do {
+                arg slice_index, count_index;
+                var count = count_index + 1;
+                "Slice %: %".format(count, slice_index).postln;
             };
-            s.sync;
-            mean_centroids.loadToFloatArray(
-                action: {
-                    arg float_array;
-                    float_array.do({
-                        arg slice_index, count_index;
-                        var count = count_index + 1;
-                        "Slice %: %".format(count, slice_index).postln;
-                    });
-                    "Found % slices.".format(float_array.size).postln;
-                    ~mean_centroids = float_array;
-                };
-            );
+            "Found % slices.".format(float_array.size).postln;
+            ~mean_centroids = float_array;
         };
     );
+};
+
+~get_slices = {
+    ~indices = Buffer(s);
+    ~get_onset_slices.();
+    ~indices.loadToFloatArray(action: ~get_mean_centroids);
 };
 
 ~display_slices = {
@@ -111,3 +126,4 @@ s.waitForBoot {
     ~play_slices.();
     ~display_slices.();
 };
+)
