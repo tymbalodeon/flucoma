@@ -15,7 +15,7 @@
     FluidWaveform(~audio_file, ~indices);
 };
 
-~get_slices = {
+~analyze_audio = {
     ~indices = Buffer(s);
     FluidBufOnsetSlice.processBlocking(
         s,
@@ -24,15 +24,54 @@
         threshold: 0.5,
         indices: ~indices,
     );
+};
+
+~get_slices = {
+    ~analyze_audio.();
     ~indices.loadToFloatArray(
         action: {
             arg float_array;
-            float_array.do({
-                arg slice_index, count_index;
-                var count = count_index + 1;
-                "Slice %: %".format(count, slice_index).postln;
-            });
-            "Found % slices.".format(float_array.size).postln;
+            var spectral_centroid = Buffer(s);
+            var stats = Buffer(s);
+            var mean_centroids = Buffer(s);
+            float_array.doAdjacentPairs{
+                arg start, end, index;
+                var number_of_frames = end - start;
+                FluidBufSpectralShape.processBlocking(
+                    s,
+                    ~audio_file,
+                    start,
+                    number_of_frames,
+                    features: spectral_centroid,
+                    select: [\centroid]
+                );
+                FluidBufStats.processBlocking(
+                    s,
+                    spectral_centroid,
+                    stats: stats,
+                    select: [\mean]
+                );
+                FluidBufCompose.processBlocking(
+                    s,
+                    stats,
+                    destination: mean_centroids,
+                    destStartFrame:
+                    index
+                );
+            };
+            s.sync;
+            mean_centroids.loadToFloatArray(
+                action: {
+                    arg float_array;
+                    float_array.do({
+                        arg slice_index, count_index;
+                        var count = count_index + 1;
+                        "Slice %: %".format(count, slice_index).postln;
+                    });
+                    "Found % slices.".format(float_array.size).postln;
+                    ~mean_centroids = float_array;
+                };
+            );
         };
     );
 };
@@ -54,7 +93,7 @@
 
 ~play_slices = {
     fork {
-        (~indices.numFrames - 1).do {
+        ~mean_centroids.order.do {
             arg index;
             ~play_slice.(index);
             1.wait;
