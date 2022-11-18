@@ -4,7 +4,7 @@
             1,
             ~audio_file,
             BufRateScale.ir(~audio_file),
-            loop: 1
+            doneAction: 2
         );
         var slices = FluidOnsetSlice.ar(audio, 9, 0.5);
         [audio, slices];
@@ -13,6 +13,28 @@
 
 ~display_waveform = {
     FluidWaveform(~audio_file, ~indices);
+};
+
+~get_slices = {
+    ~indices = Buffer(s);
+    FluidBufOnsetSlice.processBlocking(
+        s,
+        ~audio_file,
+        metric: 9,
+        threshold: 0.5,
+        indices: ~indices,
+    );
+    ~indices.loadToFloatArray(
+        action: {
+            arg float_array;
+            float_array.do({
+                arg slice_index, count_index;
+                var count = count_index + 1;
+                "Slice %: %".format(count, slice_index).postln;
+            });
+            "Found % slices.".format(float_array.size).postln;
+        };
+    );
 };
 
 ~play_slice = {
@@ -44,24 +66,6 @@ s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
-    ~indices = Buffer(s);
-    FluidBufOnsetSlice.processBlocking(
-        s,
-        ~audio_file,
-        metric: 9,
-        threshold: 0.5,
-        indices: ~indices,
-    );
-    ~indices.loadToFloatArray(
-        action: {
-            arg float_array;
-            float_array.do({
-                arg slice_index, count_index;
-                var count = count_index + 1;
-                "Slice %: %".format(count, slice_index).postln;
-            });
-            "Found % slices.".format(float_array.size).postln;
-        };
-    );
+    ~get_slices.();
     ~play_slices.();
 };
