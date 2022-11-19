@@ -21,7 +21,7 @@
         server: s,
         source: ~audio_file,
         metric: 9,
-        threshold: 0.5,
+        threshold: 0.05,
         indices: ~indices,
     );
 };
@@ -66,7 +66,7 @@
         server: s,
         source: loudness,
         stats: stats,
-        select: [\mean]
+        select: [\high]
     );
 };
 
