@@ -104,7 +104,7 @@
     ~analyses.print;
 };
 
-~make_slices = {
+~get_slices_data = {
     ~indices = Buffer(s);
     ~analyses = FluidDataSet(s);
     ~get_onset_slices.();
@@ -185,7 +185,7 @@ s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
-    ~make_slices.();
+    ~get_slices_data.();
     ~make_kd_tree.();
     ~open_plotter.();
 };
