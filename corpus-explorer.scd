@@ -12,7 +12,6 @@
             };
         };
         FluidBufCompose.processBlocking(
-            server: s,
             source: buffer,
             startChan: channel,
             numChans: 1,
@@ -56,7 +55,6 @@
 ~get_onset_slices = {
     arg threshold;
     FluidBufOnsetSlice.processBlocking(
-        server: s,
         source: ~audio_file,
         metric: 9,
         threshold: threshold,
@@ -72,66 +70,41 @@
     );
 };
 
-~get_spectral_centroid = {
-    arg start, number_of_frames, spectral_centroids;
-    FluidBufSpectralShape.processBlocking(
-        server: s,
+~get_mfcc = {
+    arg start, number_of_frames, mfcc;
+    FluidBufMFCC.processBlocking(
         source: ~audio_file,
         startFrame: start,
         numFrames: number_of_frames,
-        features: spectral_centroids,
-        select: [\centroid]
+        features: mfcc,
+        numCoeffs: 13,
+        startCoeff: 1
     );
 };
 
-~get_mean_centroid = {
-    arg spectral_centroids, stats;
+~get_mean_mfcc = {
+    arg mfcc, stats;
     FluidBufStats.processBlocking(
-        server: s,
-        source: spectral_centroids,
+        source: mfcc,
         stats: stats,
         select: [\mean]
     );
 };
 
-~get_loudness = {
-    arg start, number_of_frames, loudness;
-    FluidBufLoudness.processBlocking(
-        server: s,
-        source: ~audio_file,
-        startFrame: start,
-        numFrames: number_of_frames,
-        features: loudness,
-        select: [\loudness]
-    )
-};
-
-~get_mean_loudness = {
-    arg loudness, stats;
-    FluidBufStats.processBlocking(
-        server: s,
-        source: loudness,
-        stats: stats,
-        select: [\high]
+~flatten_mean_mfcc = {
+    arg stats, flattened_mean_mfcc;
+    FluidBufFlatten.processBlocking(
+        source: stats,
+        destination: flattened_mean_mfcc
     );
 };
 
-~add_slice_data_to_analyses = {
-    arg stats, loudness_stats, point;
-    [stats, loudness_stats].do {
-        arg stats_data, index;
-        FluidBufCompose.processBlocking(
-            server: s,
-            source: stats_data,
-            destination: point,
-            destStartFrame: index
-        );
-    };
-};
-
 ~make_kd_tree = {
+    var umapped = FluidDataSet();
+    var umapper = FluidUMAP(minDist: 0.5);
+    umapper.fitTransform(~analyses, umapped);
     ~normalized = FluidDataSet();
-    FluidNormalize().fitTransform(~analyses, ~normalized);
+    FluidNormalize().fitTransform(umapped, ~normalized);
     ~kd_tree = FluidKDTree();
     ~kd_tree.fit(~normalized);
 };
@@ -187,23 +160,19 @@
 
 ~analyze_and_plot = {
     arg float_array;
-    var spectral_centroids = Buffer();
+    var mfcc = Buffer();
     var stats = Buffer();
-    var loudness = Buffer();
-    var loudness_stats = Buffer();
-    var point = Buffer();
+    var flattened_mean_mfcc = Buffer();
     "Analyzing slices...".postln;
     fork {
         float_array.doAdjacentPairs {
             arg start, end, index;
             var number_of_frames = end - start;
             var slice_number = index + 1;
-            ~get_spectral_centroid.(start, number_of_frames, spectral_centroids);
-            ~get_mean_centroid.(spectral_centroids, stats);
-            ~get_loudness.(start, number_of_frames, loudness);
-            ~get_mean_loudness.(loudness, loudness_stats);
-            ~add_slice_data_to_analyses.(stats, loudness_stats, point);
-            ~analyses.addPoint(index, point);
+            ~get_mfcc.(start, number_of_frames, mfcc);
+            ~get_mean_mfcc.(mfcc, stats);
+            ~flatten_mean_mfcc.(stats, flattened_mean_mfcc);
+            ~analyses.addPoint(index, flattened_mean_mfcc);
             if ((slice_number % 100) == 99) {
                 s.sync;
             };

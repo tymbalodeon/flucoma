@@ -2,7 +2,6 @@
 ~get_mlp_regressor = {
     var activation = FluidMLPRegressor.sigmoid;
     FluidMLPRegressor(
-        server: s,
         hiddenLayers: [7],
         activation: activation,
         outputActivation: activation,
@@ -261,8 +260,8 @@
     ~synth_buffer = Buffer.alloc(s, numFrames: 10);
     ~synth_slider = ~get_synth_slider.value();
     ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
-    ~synth_data = FluidDataSet(s);
-    ~x_y_data = FluidDataSet(s);
+    ~synth_data = FluidDataSet();
+    ~x_y_data = FluidDataSet();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
     ~set_params_changed_action.();

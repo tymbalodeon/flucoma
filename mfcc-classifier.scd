@@ -2,7 +2,6 @@
 ~get_neural_network = {
     var activation = FluidMLPRegressor.sigmoid;
     FluidMLPClassifier(
-        s,
         hiddenLayers: [5],
         activation: activation,
         maxIter: 1000,
@@ -284,9 +283,9 @@
 ~set_state = {
     ~counter = 0;
     ~number_of_coefficients = 13;
-    ~mfcc_buffer = Buffer.alloc(s, ~number_of_coefficients);
-    ~timbre_data = FluidDataSet(s);
-    ~labels = FluidLabelSet(s);
+    ~mfcc_buffer = Buffer.alloc(numFrames: ~number_of_coefficients);
+    ~timbre_data = FluidDataSet();
+    ~labels = FluidLabelSet();
     ~neural_network = ~get_neural_network.();
     ~split_frame = 1783040;
     ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
