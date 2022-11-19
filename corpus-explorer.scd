@@ -54,11 +54,12 @@
 };
 
 ~get_onset_slices = {
+    arg threshold;
     FluidBufOnsetSlice.processBlocking(
         server: s,
         source: ~audio_file,
         metric: 9,
-        threshold: 0.05,
+        threshold: threshold,
         indices: ~indices,
         action: {
             var duration = ~audio_file.duration;
@@ -215,11 +216,11 @@
 };
 
 ~open_plotter = {
-    arg input_folder;
+    arg input_folder, threshold;
     ~load_input_folder.(input_folder);
     ~indices = Buffer();
     ~analyses = FluidDataSet();
-    ~get_onset_slices.();
+    ~get_onset_slices.(threshold);
     ~indices.loadToFloatArray(action: ~analyze_and_plot);
 };
 
@@ -239,10 +240,10 @@
 };
 
 ~main = {
-    arg input_folder;
+    arg input_folder, threshold = 0.05;
     "helpers.scd".load;
     ~reset.();
-    ~open_plotter.(input_folder);
+    ~open_plotter.(input_folder, threshold);
 
 };
 
