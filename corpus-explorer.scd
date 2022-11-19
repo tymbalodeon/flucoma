@@ -185,7 +185,7 @@ s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
     ~source_filename = "Nicol-LoopE-M.wav";
-    ~audio_file = Buffer.read(s, FluidFilesPath(source_filename));
+    ~audio_file = Buffer.read(s, FluidFilesPath(~source_filename));
     ~get_slices_data.();
     ~make_kd_tree.();
     ~open_plotter.();
