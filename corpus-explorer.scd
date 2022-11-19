@@ -1,4 +1,33 @@
 (
+~convert_to_mono = {
+    arg buffer;
+    var channels = [0, 1];
+    channels.do {
+        arg channel;
+        FluidBufCompose.processBlocking(
+            server: s,
+            source: buffer,
+            startChan: channel,
+            numChans: 1,
+            destination: ~audio_file,
+            destStartChan: 0,
+            gain: -6.dbamp,
+            destGain: channel
+        );
+    };
+};
+
+~load_input_folder = {
+    var folder = FluidLoadFolder(~input_folder).play(s);
+    var buffer = folder.buffer;
+    if (buffer.numChannels > 1) {
+        ~audio_file = Buffer(s);
+        ~convert_to_mono.(buffer);
+    } {
+        ~audio_file = buffer;
+    };
+};
+
 ~play_with_slices = {
     {
         var audio = PlayBuf.ar(
@@ -184,8 +213,8 @@
 s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
-    ~source_filename = "Nicol-LoopE-M.wav";
-    ~audio_file = Buffer.read(s, FluidFilesPath(~source_filename));
+    ~input_folder = FluidFilesPath();
+    ~load_input_folder.();
     ~get_slices_data.();
     ~make_kd_tree.();
     ~open_plotter.();
