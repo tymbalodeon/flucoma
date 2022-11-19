@@ -181,7 +181,6 @@
     };
 };
 
-s.quit;
 s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
