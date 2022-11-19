@@ -295,7 +295,7 @@
 
 s.waitForBoot {
     "helpers.scd".load;
-    ~reset_windows.();
+    ~reset.();
     ~set_state.();
     ~get_window.();
 };

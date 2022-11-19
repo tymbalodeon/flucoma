@@ -25,10 +25,11 @@
 };
 
 ~load_input_folder = {
-    var folder = FluidLoadFolder(~input_folder).play(s);
+    arg input_folder;
+    var folder = FluidLoadFolder(input_folder).play;
     var buffer = folder.buffer;
     if (buffer.numChannels > 1) {
-        ~audio_file = Buffer(s);
+        ~audio_file = Buffer();
         ~convert_to_mono.(buffer);
     } {
         ~audio_file = buffer;
@@ -127,74 +128,11 @@
     };
 };
 
-~get_mean_centroids = {
-    arg float_array;
-    var spectral_centroids = Buffer(s);
-    var stats = Buffer(s);
-    var loudness = Buffer(s);
-    var loudness_stats = Buffer(s);
-    var point = Buffer(s);
-    float_array.doAdjacentPairs {
-        arg start, end, index;
-        var number_of_frames = end - start;
-        ~get_spectral_centroid.(start, number_of_frames, spectral_centroids);
-        ~get_mean_centroid.(spectral_centroids, stats);
-        ~get_loudness.(start, number_of_frames, loudness);
-        ~get_mean_loudness.(loudness, loudness_stats);
-        ~add_slice_data_to_analyses.(stats, loudness_stats, point);
-        ~analyses.addPoint(index, point);
-    };
-    s.sync;
-    ~analyses.print;
-};
-
-~get_slices_data = {
-    ~indices = Buffer(s);
-    ~analyses = FluidDataSet(s);
-    ~get_onset_slices.();
-    ~indices.loadToFloatArray(action: ~get_mean_centroids);
-};
-
 ~make_kd_tree = {
-    ~normalized = FluidDataSet(s);
-    FluidNormalize(s).fitTransform(~analyses, ~normalized);
-    ~kd_tree = FluidKDTree(s);
+    ~normalized = FluidDataSet();
+    FluidNormalize().fitTransform(~analyses, ~normalized);
+    ~kd_tree = FluidKDTree();
     ~kd_tree.fit(~normalized);
-};
-
-~find_nearest_point = {
-    arg view, x, y;
-    ~point.setn(0, [x, y]);
-    ~kd_tree.kNearest(
-        ~point,
-        k: 1,
-        action: {
-            arg nearest_point;
-            if (nearest_point != ~previous_point) {
-                view.highlight_(nearest_point);
-                ~play_slice.(nearest_point.asInteger);
-                ~previous_point = nearest_point;
-            };
-        }
-    );
-};
-
-~open_plotter = {
-    ~normalized.dump {
-        arg dictionary;
-        ~point = Buffer.alloc(s, 2);
-        ~previous_point = nil;
-        defer {
-            FluidPlotter(
-                dict: dictionary,
-                mouseMoveAction: ~find_nearest_point
-            );
-        };
-    };
-};
-
-~display_slices = {
-    FluidWaveform(~audio_file, ~indices);
 };
 
 ~play_slice = {
@@ -215,6 +153,80 @@
     }.play;
 };
 
+~find_nearest_point = {
+    arg view, x, y;
+    ~point.setn(0, [x, y]);
+    ~kd_tree.kNearest(
+        ~point,
+        k: 1,
+        action: {
+            arg nearest_point;
+            if (nearest_point != ~previous_point) {
+                view.highlight_(nearest_point);
+                ~play_slice.(nearest_point.asInteger);
+                ~previous_point = nearest_point;
+            };
+        }
+    );
+};
+
+~make_plotter = {
+    ~normalized.dump {
+        arg dictionary;
+        ~point = Buffer.alloc(s, 2);
+        ~previous_point = nil;
+        defer {
+            FluidPlotter(
+                dict: dictionary,
+                mouseMoveAction: ~find_nearest_point
+            );
+        };
+    };
+};
+
+~analyze_and_plot = {
+    arg float_array;
+    var spectral_centroids = Buffer();
+    var stats = Buffer();
+    var loudness = Buffer();
+    var loudness_stats = Buffer();
+    var point = Buffer();
+    "Analyzing slices...".postln;
+    fork {
+        float_array.doAdjacentPairs {
+            arg start, end, index;
+            var number_of_frames = end - start;
+            var slice_number = index + 1;
+            ~get_spectral_centroid.(start, number_of_frames, spectral_centroids);
+            ~get_mean_centroid.(spectral_centroids, stats);
+            ~get_loudness.(start, number_of_frames, loudness);
+            ~get_mean_loudness.(loudness, loudness_stats);
+            ~add_slice_data_to_analyses.(stats, loudness_stats, point);
+            ~analyses.addPoint(index, point);
+            if ((slice_number % 100) == 99) {
+                s.sync;
+            };
+        };
+        s.sync;
+        ~analyses.print;
+        ~make_kd_tree.();
+        ~make_plotter.();
+    };
+};
+
+~open_plotter = {
+    arg input_folder;
+    ~load_input_folder.(input_folder);
+    ~indices = Buffer();
+    ~analyses = FluidDataSet();
+    ~get_onset_slices.();
+    ~indices.loadToFloatArray(action: ~analyze_and_plot);
+};
+
+~display_slices = {
+    FluidWaveform(~audio_file, ~indices);
+};
+
 ~play_slices = {
     fork {
         ~mean_centroids.order.do {
@@ -226,13 +238,16 @@
     };
 };
 
-s.waitForBoot {
+~main = {
+    arg input_folder;
     "helpers.scd".load;
-    ~reset_windows.();
-    ~input_folder = FluidFilesPath();
-    ~load_input_folder.();
-    ~get_slices_data.();
-    ~make_kd_tree.();
-    ~open_plotter.();
+    ~reset.();
+    ~open_plotter.(input_folder);
+
+};
+
+s.waitForBoot {
+    var input_folder = FluidFilesPath();
+    ~main.(input_folder);
 };
 )

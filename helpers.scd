@@ -1,7 +1,8 @@
 (
-~reset_windows = {
+~reset = {
     Window.closeAll;
-    ServerMeter(s, 2, 2);
+    Buffer.freeAll;
+    ServerMeter(s, numIns: 2, numOuts: 2);
 };
 
 ~set_button = {

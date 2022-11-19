@@ -270,7 +270,7 @@
 
 s.waitForBoot {
     "helpers.scd".load;
-    ~reset_windows.();
+    ~reset.();
     ~set_state.();
     ~synth = ~play_synth.();
 };
