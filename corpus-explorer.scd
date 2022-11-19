@@ -111,10 +111,9 @@
 };
 
 ~find_nearest_point = {
-    arg previous_point;
+    arg point, previous_point;
     {
         arg view, x, y;
-        var point = Buffer.alloc(s, 2);
         point.setn(0, [x, y]);
         ~kd_tree.kNearest(
             point,
@@ -122,21 +121,20 @@
             action: {
                 arg nearest_point;
                 if (nearest_point != previous_point) {
-                    nearest_point.postln;
                     view.highlight_(nearest_point);
                     ~play_slice.(nearest_point.asInteger);
                     previous_point = nearest_point;
                 };
             }
         );
-    };
+    }
 };
 
 ~get_plotter = {
     ~analyses.dump {
         arg dictionary;
+        var point = Buffer.alloc(s, 2);
         var previous_point = nil;
-        dictionary.postln;
         defer {
             FluidPlotter(
                 dict: dictionary,
@@ -144,7 +142,10 @@
                 xmax: 20000,
                 ymin: -100,
                 ymax: 0,
-                mouseMoveAction: ~find_nearest_point.(previous_point)
+                mouseMoveAction: ~find_nearest_point.value(
+                    point,
+                    previous_point
+                )
             );
         };
     };
@@ -182,14 +183,15 @@
     };
 };
 
+s.quit;
 s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
     ~analyses = FluidDataSet(s);
+    ~get_slices.();
     ~kd_tree = FluidKDTree(s);
     ~kd_tree.fit(~analyses);
-    ~get_slices.();
     ~get_plotter.();
 };
 )
