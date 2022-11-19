@@ -104,10 +104,18 @@
     ~analyses.print;
 };
 
-~get_slices = {
+~make_slices = {
     ~indices = Buffer(s);
+    ~analyses = FluidDataSet(s);
     ~get_onset_slices.();
     ~indices.loadToFloatArray(action: ~get_mean_centroids);
+};
+
+~make_kd_tree = {
+    ~normalized = FluidDataSet(s);
+    FluidNormalize(s).fitTransform(~analyses, ~normalized);
+    ~kd_tree = FluidKDTree(s);
+    ~kd_tree.fit(~normalized);
 };
 
 ~find_nearest_point = {
@@ -127,18 +135,14 @@
     );
 };
 
-~get_plotter = {
-    ~analyses.dump {
+~open_plotter = {
+    ~normalized.dump {
         arg dictionary;
         ~point = Buffer.alloc(s, 2);
         ~previous_point = nil;
         defer {
             FluidPlotter(
                 dict: dictionary,
-                xmin: 0,
-                xmax: 20000,
-                ymin: -100,
-                ymax: 0,
                 mouseMoveAction: ~find_nearest_point
             );
         };
@@ -182,10 +186,8 @@ s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
-    ~analyses = FluidDataSet(s);
-    ~get_slices.();
-    ~kd_tree = FluidKDTree(s);
-    ~kd_tree.fit(~analyses);
-    ~get_plotter.();
+    ~make_slices.();
+    ~make_kd_tree.();
+    ~open_plotter.();
 };
 )
