@@ -1,9 +1,16 @@
 (
 ~convert_to_mono = {
     arg buffer;
-    var channels = [0, 1];
+    var channels = buffer.numChannels;
     channels.do {
         arg channel;
+        var dest_gain = {
+            if (channel == 0) {
+                0;
+            } {
+                1;
+            };
+        };
         FluidBufCompose.processBlocking(
             server: s,
             source: buffer,
@@ -12,7 +19,7 @@
             destination: ~audio_file,
             destStartChan: 0,
             gain: -6.dbamp,
-            destGain: channel
+            destGain: dest_gain
         );
     };
 };
@@ -52,6 +59,14 @@
         metric: 9,
         threshold: 0.05,
         indices: ~indices,
+        action: {
+            var duration = ~audio_file.duration;
+            var number_of_frames = ~indices.numFrames;
+            var average_seconds_per_slice = duration / number_of_frames;
+            "Average seconds per slice: %".format(
+                average_seconds_per_slice
+            ).postln;
+        }
     );
 };
 
@@ -188,14 +203,15 @@
         var start = Index.kr(~indices, index);
         var stop = Index.kr(~indices, index + 1);
         var phasor = Phasor.ar(0, BufRateScale.ir(~audio_file), start, stop);
-        var audio_file = BufRd.ar(1, ~audio_file, phasor);
-        var duration = (stop - start) / BufSampleRate.ir(~audio_file);
+        var audio = BufRd.ar(1, ~audio_file, phasor);
+        var total_duration = (stop - start) / BufSampleRate.ir(~audio_file);
+        var duration = min(total_duration, 1);
         var fade_time = 0.03;
         var total_fade_time = fade_time * 2;
         var non_fade_time = duration - total_fade_time;
         var env = Env([0, 1, 1, 0], [fade_time, non_fade_time, fade_time]);
         var env_gen = EnvGen.kr(env, doneAction: 2);
-        audio_file.dup * env_gen;
+        audio.dup * env_gen;
     }.play;
 };
 
