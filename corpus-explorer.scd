@@ -77,7 +77,6 @@
         startFrame: start,
         numFrames: number_of_frames,
         features: mfcc,
-        numCoeffs: 13,
         startCoeff: 1
     );
 };
