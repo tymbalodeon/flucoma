@@ -21,7 +21,7 @@
         server: s,
         source: ~audio_file,
         metric: 9,
-        threshold: 0.05,
+        threshold: 0.5,
         indices: ~indices,
     );
 };
@@ -48,42 +48,106 @@
     );
 };
 
-~add_to_mean_centroids_array = {
-    arg stats, mean_centroids, index;
-    FluidBufCompose.processBlocking(
+~get_loudness = {
+    arg start, number_of_frames, loudness;
+    FluidBufLoudness.processBlocking(
         server: s,
-        source: stats,
-        destination: mean_centroids,
-        destStartFrame: index
+        source: ~audio_file,
+        startFrame: start,
+        numFrames: number_of_frames,
+        features: loudness,
+        select: [\loudness]
+    )
+};
+
+~get_mean_loudness = {
+    arg loudness, stats;
+    FluidBufStats.processBlocking(
+        server: s,
+        source: loudness,
+        stats: stats,
+        select: [\mean]
     );
+};
+
+~add_slice_data_to_analyses = {
+    arg stats, loudness_stats, point;
+    [stats, loudness_stats].do {
+        arg stats_data, index;
+        FluidBufCompose.processBlocking(
+            server: s,
+            source: stats_data,
+            destination: point,
+            destStartFrame: index
+        );
+    };
 };
 
 ~get_mean_centroids = {
     arg float_array;
     var spectral_centroids = Buffer(s);
     var stats = Buffer(s);
-    var mean_centroids = Buffer(s);
-    float_array.doAdjacentPairs{
+    var loudness = Buffer(s);
+    var loudness_stats = Buffer(s);
+    var point = Buffer(s);
+    float_array.doAdjacentPairs {
         arg start, end, index;
         var number_of_frames = end - start;
         ~get_spectral_centroid.(start, number_of_frames, spectral_centroids);
         ~get_mean_centroid.(spectral_centroids, stats);
-        ~add_to_mean_centroids_array.(stats, mean_centroids, index);
+        ~get_loudness.(start, number_of_frames, loudness);
+        ~get_mean_loudness.(loudness, loudness_stats);
+        ~add_slice_data_to_analyses.(stats, loudness_stats, point);
+        ~analyses.addPoint(index, point);
     };
     s.sync;
-    mean_centroids.loadToFloatArray(
-        action: {
-            arg float_array;
-            "Found % slices.".format(float_array.size).postln;
-            ~mean_centroids = float_array;
-        };
-    );
+    ~analyses.print;
 };
 
 ~get_slices = {
     ~indices = Buffer(s);
     ~get_onset_slices.();
     ~indices.loadToFloatArray(action: ~get_mean_centroids);
+};
+
+~find_nearest_point = {
+    arg previous_point;
+    {
+        arg view, x, y;
+        var point = Buffer.alloc(s, 2);
+        point.setn(0, [x, y]);
+        ~kd_tree.kNearest(
+            point,
+            k: 1,
+            action: {
+                arg nearest_point;
+                if (nearest_point != previous_point) {
+                    nearest_point.postln;
+                    view.highlight_(nearest_point);
+                    ~play_slice.(nearest_point.asInteger);
+                    previous_point = nearest_point;
+                };
+            }
+        );
+    };
+};
+
+~get_plotter = {
+    ~analyses.dump {
+        arg dictionary;
+        var previous_point = nil;
+        dictionary.postln;
+        defer {
+            FluidPlotter(
+                dict: dictionary,
+                xmin: 0,
+                xmax: 20000,
+                ymin: -100,
+                ymax: 0,
+                mouseMoveAction: ~find_nearest_point.(previous_point)
+            );
+        };
+    };
 };
 
 ~display_slices = {
@@ -122,8 +186,10 @@ s.waitForBoot {
     "helpers.scd".load;
     ~reset_windows.();
     ~audio_file = Buffer.read(s, FluidFilesPath("Nicol-LoopE-M.wav"));
+    ~analyses = FluidDataSet(s);
+    ~kd_tree = FluidKDTree(s);
+    ~kd_tree.fit(~analyses);
     ~get_slices.();
-    ~display_slices.();
-    ~play_slices.();
+    ~get_plotter.();
 };
 )
