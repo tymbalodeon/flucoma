@@ -151,8 +151,18 @@
     var states = [["Not Predicting"], ["Predicting"]];
     var set_state = {
         arg button;
-        ~synth.set(\predicting, button.());
+        var predicting = button.value;
+        if (~synth != nil) {
+            ~synth.set(\predicting, predicting);
+        };
+        ~predicting = predicting;
+        if (predicting == 0) {
+            "Not predicting.".postln;
+        } {
+            "Predicting.".postln;
+        }
     };
+    ~predicting = 0;
     ~set_button.(bounds, states, set_state);
 };
 
@@ -189,7 +199,7 @@
 
 ~play_synth = {
     {
-        arg predicting = 0;
+        arg predicting = ~predicting;
         var x_y = FluidBufToKr.kr(~x_y_buffer);
         var trigger = Mix(Changed.kr(x_y));
         var value = FluidBufToKr.kr(~synth_buffer);
@@ -227,7 +237,7 @@
 
 ~set_play_synth_button = {
     arg bounds;
-    var states = [["Not Playing"], ["Playing"]];
+    var states = [["Play"], ["Stop"]];
     var play_and_stop = {
         arg button;
         if (button.value == 1 && ~synth == nil) {
