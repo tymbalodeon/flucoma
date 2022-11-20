@@ -2,6 +2,7 @@
 ~reset = {
     Window.closeAll;
     Buffer.freeAll;
+    s.freeAll;
     ServerMeter(s, numIns: 2, numOuts: 2);
 };
 
