@@ -28,12 +28,38 @@
     arg bounds;
     var states = [["Add Points"]];
     var add_point = {
-        var point = "point %".format(~counter);
+        var round_to_one_decimal = {
+            arg number;
+            number.round(0.1);
+        };
+        var point = "Point %".format(~counter);
         ~x_y_data.addPoint(point, ~x_y_buffer);
         ~synth_data.addPoint(point, ~synth_buffer);
         ~counter = ~counter + 1;
-        ~x_y_data.print;
-        ~synth_data.print;
+        "% ".format(point).post;
+        ~x_y_buffer.loadToFloatArray(action:{
+            arg x_y_values;
+            var x, y; # x, y = x_y_values;
+            "{x: %, y: %} -- (".format(
+                round_to_one_decimal.(x),
+                round_to_one_decimal.(y)
+            ).post;
+        });
+        ~synth_buffer.loadToFloatArray(
+            action: {
+                arg synth_values;
+                var last_index = synth_values.size - 1;
+                synth_values.do {
+                    arg value, index;
+                    var rounded_value = round_to_one_decimal.(value);
+                    if (index == last_index) {
+                        "%)".format(rounded_value).postln;
+                    } {
+                        "%, ".format(rounded_value).post;
+                    };
+                };
+            }
+        );
     };
     ~counter = 0;
     ~x_y_data = FluidDataSet();
