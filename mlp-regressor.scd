@@ -41,11 +41,11 @@
         ~x_y_data.addPoint(point, ~x_y_buffer);
         ~synth_data.addPoint(point, ~synth_buffer);
         ~counter = ~counter + 1;
-        "% ".format(point).post;
+        "%: ".format(point).post;
         ~x_y_buffer.loadToFloatArray(action:{
             arg x_y_values;
             var x, y; # x, y = x_y_values;
-            "{x: %, y: %} -- (".format(
+            "{x: %, y: %}, Values: (".format(
                 round_to_one_decimal.(x),
                 round_to_one_decimal.(y)
             ).post;
@@ -325,7 +325,7 @@
 
 s.waitForBoot {
     "helpers.scd".load;
-    ~reset.();
+    ~reset.(meter: false);
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
 };
