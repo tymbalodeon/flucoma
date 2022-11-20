@@ -1,10 +1,12 @@
 (
 ~reset = {
-    arg plot_tree = false;
+    arg meter = true, plot_tree = false;
     s.freeAll;
     Window.closeAll;
     Buffer.freeAll;
-    ServerMeter(s, numIns: 2, numOuts: 2);
+    if (meter == true) {
+        ServerMeter(s, numIns: 2, numOuts: 2);
+    };
     if (plot_tree == true) {
         s.plotTree;
     };
