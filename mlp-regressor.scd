@@ -9,6 +9,7 @@
     MultiSliderView(~window, bounds)
     .elasticMode_(1)
     .isFilled_(1)
+    .indexThumbSize_(50)
     .action_(set_synth_slider_values)
     .value_(0.5.dup(10));
 };
