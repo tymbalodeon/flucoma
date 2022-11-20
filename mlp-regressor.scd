@@ -325,7 +325,7 @@
 
 s.waitForBoot {
     "helpers.scd".load;
-    ~reset.(meter: false);
+    ~reset.();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
 };
