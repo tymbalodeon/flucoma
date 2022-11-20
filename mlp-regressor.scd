@@ -198,8 +198,8 @@
 };
 
 ~play_synth = {
-    {
-        arg predicting = ~predicting;
+    ~synth = {
+        arg predicting = 0;
         var x_y = FluidBufToKr.kr(~x_y_buffer);
         var trigger = Mix(Changed.kr(x_y));
         var value = FluidBufToKr.kr(~synth_buffer);
@@ -232,7 +232,7 @@
         );
         Out.ar(0, LeakDC.ar(signals, mul: 0.1));
         LocalOut.ar(signals);
-    }.play;
+    }.play(args: [\predicting, ~predicting]);
 };
 
 ~set_play_synth_button = {
@@ -242,7 +242,7 @@
         arg button;
         if (button.value == 1 && ~synth == nil) {
             "Playing...".postln;
-            ~synth = ~play_synth.();
+            ~play_synth.();
         } {
             if (~synth != nil) {
                 ~synth.free;
@@ -251,6 +251,7 @@
             ~synth = nil;
         };
     };
+    ~synth = nil;
     ~set_button.(bounds, states, play_and_stop);
 };
 
