@@ -1,10 +1,13 @@
 (
 ~reset = {
+    arg plot_tree = false;
+    s.freeAll;
     Window.closeAll;
     Buffer.freeAll;
-    s.freeAll;
-    s.plotTree;
     ServerMeter(s, numIns: 2, numOuts: 2);
+    if (plot_tree == true) {
+        s.plotTree;
+    };
 };
 
 ~set_button = {
