@@ -1,16 +1,18 @@
 (
+~get_dest_gain = {
+    arg channel;
+    if (channel == 0) {
+        0;
+    } {
+        1;
+    };
+};
+
 ~convert_to_mono = {
     arg buffer;
     var channels = buffer.numChannels;
     channels.do {
         arg channel;
-        var dest_gain = {
-            if (channel == 0) {
-                0;
-            } {
-                1;
-            };
-        };
         FluidBufCompose.processBlocking(
             source: buffer,
             startChan: channel,
@@ -18,7 +20,7 @@
             destination: ~audio_file,
             destStartChan: 0,
             gain: -6.dbamp,
-            destGain: dest_gain
+            destGain: ~get_dest_gain.(channel)
         );
     };
 };
