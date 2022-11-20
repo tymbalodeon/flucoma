@@ -23,6 +23,11 @@
         ~counter = ~counter + 1;
         "Added % %.".format(label, id).postln;
     };
+    ~counter = 0;
+    ~timbre_data = FluidDataSet();
+    ~number_of_coefficients = 13;
+    ~mfcc_buffer = Buffer.alloc(numFrames: ~number_of_coefficients);
+    ~labels = FluidLabelSet();
     ~set_button.(bounds, states, add_point);
 };
 
@@ -157,6 +162,7 @@
         };
         ~neural_network.fit(~timbre_data, ~labels, post_loss);
     };
+    ~neural_network = ~get_neural_network.();
     ~set_button.(bounds, states, train);
 };
 
@@ -280,22 +286,12 @@
     );
 };
 
-~set_state = {
-    ~counter = 0;
-    ~number_of_coefficients = 13;
-    ~mfcc_buffer = Buffer.alloc(numFrames: ~number_of_coefficients);
-    ~timbre_data = FluidDataSet();
-    ~labels = FluidLabelSet();
-    ~neural_network = ~get_neural_network.();
+s.waitForBoot {
     ~split_frame = 1783040;
     ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
     ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
-};
-
-s.waitForBoot {
     "helpers.scd".load;
     ~reset.();
-    ~set_state.();
     ~get_window.();
 };
 )
