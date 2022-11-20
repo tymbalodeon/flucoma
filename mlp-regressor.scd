@@ -9,6 +9,9 @@
     MultiSliderView(~window, bounds)
     .elasticMode_(1)
     .isFilled_(1)
+    .background_(Color.black)
+    .colors_(Color.white)
+    .fillColor_(Color.white)
     .indexThumbSize_(50)
     .action_(set_synth_slider_values)
     .value_(0.5.dup(10));
@@ -21,7 +24,9 @@
         ~x_y_buffer.setn(0, [slider.x, slider.y]);
     };
     ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
-    Slider2D(~window, bounds).action_(set_x_y_values);
+    Slider2D(~window, bounds)
+    .action_(set_x_y_values)
+    .background_(Color.black);
 };
 
 ~set_add_points_button = {
@@ -253,7 +258,9 @@
 };
 
 ~set_window_items = {
-    ~window = Window("MLP Regressor").front;
+    ~window = Window("MLP Regressor")
+    .background_(Color.new255(105, 105, 105))
+    .front;
     ~synth_slider = ~get_synth_slider.(Rect(320, 10, 400, 300));
     ~set_x_y_slider.(Rect(10, 10, 300, 300));
     ~set_add_points_button.(Rect(730, 10, 100, 20));
