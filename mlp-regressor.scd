@@ -151,12 +151,11 @@
     var states = [["Not Predicting"], ["Predicting"]];
     var set_state = {
         arg button;
-        var predicting = button.value;
+        ~predicting = button.value;
         if (~synth != nil) {
-            ~synth.set(\predicting, predicting);
+            ~synth.set(\predicting, ~predicting);
         };
-        ~predicting = predicting;
-        if (predicting == 0) {
+        if (~predicting == 0) {
             "Not predicting.".postln;
         } {
             "Predicting.".postln;
@@ -197,7 +196,7 @@
         value[index_5] * 3.5);
 };
 
-~get_synth = {
+~play_synth = {
     {
         arg predicting = 0;
         var x_y = FluidBufToKr.kr(~x_y_buffer);
@@ -232,7 +231,7 @@
         );
         Out.ar(0, LeakDC.ar(signals, mul: 0.1));
         LocalOut.ar(signals);
-    };
+    }.play(args: [\predicting, ~predicting]);
 };
 
 ~set_play_synth_button = {
@@ -241,14 +240,14 @@
     var play_and_stop = {
         arg button;
         if (button.value == 1) {
+            ~synth = ~play_synth.();
             "Playing...".postln;
-            ~synth.play(args: [\predicting, ~predicting]);
         } {
-            ~synth.stop;
+            ~synth.free;
+            ~synth = nil;
             "Playing stopped.".postln;
         };
     };
-    ~synth = ~get_synth.();
     ~set_button.(bounds, states, play_and_stop);
 };
 

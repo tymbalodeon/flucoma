@@ -3,6 +3,7 @@
     Window.closeAll;
     Buffer.freeAll;
     s.freeAll;
+    s.plotTree;
     ServerMeter(s, numIns: 2, numOuts: 2);
 };
 
