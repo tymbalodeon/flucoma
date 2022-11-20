@@ -37,23 +37,6 @@
     };
 };
 
-~play_with_slices = {
-    {
-        var audio = PlayBuf.ar(
-            numChannels: 1,
-            bufnum: ~audio_file,
-            rate: BufRateScale.ir(~audio_file),
-            doneAction: 2
-        );
-        var slices = FluidOnsetSlice.ar(
-            in: audio,
-            metric: \rcomplex,
-            threshold: 0.5
-        );
-        [audio, slices];
-    }.play;
-};
-
 ~get_onset_slices = {
     arg threshold;
     FluidBufOnsetSlice.processBlocking(
@@ -100,9 +83,21 @@
     );
 };
 
+~analyze_slice = {
+    arg start, number_of_frames, mfcc, stats, flattened_mean_mfcc, index;
+    var slice_number = index + 1;
+    ~get_mfcc.(start, number_of_frames, mfcc);
+    ~get_mean_mfcc.(mfcc, stats);
+    ~flatten_mean_mfcc.(stats, flattened_mean_mfcc);
+    ~analyses.addPoint(index, flattened_mean_mfcc);
+    if ((slice_number % 100) == 99) {
+        s.sync;
+    };
+};
+
 ~make_kd_tree = {
     var umapped = FluidDataSet();
-    var umapper = FluidUMAP(minDist: 0.5);
+    var umapper = FluidUMAP(minDist: 1);
     umapper.fitTransform(~analyses, umapped);
     ~normalized = FluidDataSet();
     FluidNormalize().fitTransform(umapped, ~normalized);
@@ -148,10 +143,10 @@
 ~make_plotter = {
     ~normalized.dump {
         arg dictionary;
-        ~point = Buffer.alloc(s, 2);
+        ~point = Buffer.alloc(numFrames: 2);
         ~previous_point = nil;
         defer {
-            FluidPlotter(
+            ~plotter = FluidPlotter(
                 dict: dictionary,
                 mouseMoveAction: ~find_nearest_point
             );
@@ -169,14 +164,14 @@
         float_array.doAdjacentPairs {
             arg start, end, index;
             var number_of_frames = end - start;
-            var slice_number = index + 1;
-            ~get_mfcc.(start, number_of_frames, mfcc);
-            ~get_mean_mfcc.(mfcc, stats);
-            ~flatten_mean_mfcc.(stats, flattened_mean_mfcc);
-            ~analyses.addPoint(index, flattened_mean_mfcc);
-            if ((slice_number % 100) == 99) {
-                s.sync;
-            };
+            ~analyze_slice.(
+                start,
+                number_of_frames,
+                mfcc,
+                stats,
+                flattened_mean_mfcc,
+                index
+            );
         };
         s.sync;
         ~analyses.print;
