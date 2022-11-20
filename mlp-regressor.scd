@@ -1,23 +1,11 @@
 (
-~get_mlp_regressor = {
-    var activation = FluidMLPRegressor.sigmoid;
-    FluidMLPRegressor(
-        hiddenLayers: [7],
-        activation: activation,
-        outputActivation: activation,
-        maxIter: 1000,
-        learnRate: 0.1,
-        batchSize: 1,
-        validation: 0
-    );
-};
-
 ~get_synth_slider = {
-    var bounds = Rect(10, 10, 400, 300);
+    arg bounds;
     var set_synth_slider_values = {
         arg synth_slider;
         ~synth_buffer.setn(0, synth_slider.());
     };
+    ~synth_buffer = Buffer.alloc(s, numFrames: 10);
     MultiSliderView(~window, bounds)
     .elasticMode_(1)
     .isFilled_(1)
@@ -25,8 +13,18 @@
     .value_(0.5.dup(10));
 };
 
+~set_x_y_slider = {
+    arg bounds;
+    var set_x_y_values = {
+        arg slider;
+        ~x_y_buffer.setn(0, [slider.x, slider.y]);
+    };
+    ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
+    Slider2D(~window, bounds).action_(set_x_y_values);
+};
+
 ~set_add_points_button = {
-    var bounds = Rect(730, 10, 100, 20);
+    arg bounds;
     var states = [["Add Points"]];
     var add_point = {
         var point = "point %".format(~counter);
@@ -36,6 +34,9 @@
         ~x_y_data.print;
         ~synth_data.print;
     };
+    ~counter = 0;
+    ~x_y_data = FluidDataSet();
+    ~synth_data = FluidDataSet();
     ~set_button.(bounds, states, add_point);
 };
 
@@ -67,7 +68,7 @@
 };
 
 ~set_save_data_button = {
-    var bounds = Rect(730, 40, 100, 20);
+    arg bounds;
     var states = [["Save Data"]];
     var save_data = ~get_save_file_dialog;
     ~set_button.(bounds, states, save_data);
@@ -90,7 +91,7 @@
 };
 
 ~set_load_data_button = {
-    var bounds = Rect(730, 70, 100, 20);
+    arg bounds;
     var states = [["Load Data"]];
     var load_data = ~get_load_file_dialog;
     ~set_button.(bounds, states, load_data);
@@ -105,7 +106,7 @@
 };
 
 ~set_train_button = {
-    var bounds = Rect(730, 100, 100, 20);
+    arg bounds;
     var states = [["Train"]];
     var train = ~train_regressor;
     ~set_button.(bounds, states, train);
@@ -124,7 +125,7 @@
 };
 
 ~set_save_mlp_button = {
-    var bounds = Rect(730, 130, 100, 20);
+    arg bounds;
     var states = [["Save MLP"]];
     var save_mlp = ~get_save_regressor_dialog;
     ~set_button.(bounds, states, save_mlp);
@@ -139,31 +140,20 @@
 };
 
 ~set_load_mlp_button = {
-    var bounds = Rect(730, 160, 100, 20);
+    arg bounds;
     var states = [["Load MLP"]];
     var load_mlp = ~get_load_regressor_dialog;
     ~set_button.(bounds, states, load_mlp);
 };
 
 ~set_predicting_button = {
-    var bounds = Rect(730, 190, 100, 20);
+    arg bounds;
     var states = [["Not Predicting"], ["Predicting"]];
     var set_state = {
         arg button;
         ~synth.set(\predicting, button.());
     };
     ~set_button.(bounds, states, set_state);
-};
-
-~set_window_items = {
-    ~set_x_y_slider.();
-    ~set_add_points_button.();
-    ~set_save_data_button.();
-    ~set_load_data_button.();
-    ~set_train_button.();
-    ~set_save_mlp_button.();
-    ~set_load_mlp_button.();
-    ~set_predicting_button.();
 };
 
 ~get_loudness = {
@@ -235,6 +225,53 @@
     }.play;
 };
 
+~set_play_synth_button = {
+    arg bounds;
+    var states = [["Not Playing"], ["Playing"]];
+    var play_and_stop = {
+        arg button;
+        if (button.value == 1 && ~synth == nil) {
+            "Playing...".postln;
+            ~synth = ~play_synth.();
+        } {
+            if (~synth != nil) {
+                ~synth.free;
+                "Playing stopped.".postln;
+            };
+            ~synth = nil;
+        };
+    };
+    ~set_button.(bounds, states, play_and_stop);
+};
+
+~set_window_items = {
+    ~window = Window("MLP Regressor").front;
+    ~synth_slider = ~get_synth_slider.(Rect(320, 10, 400, 300));
+    ~set_x_y_slider.(Rect(10, 10, 300, 300));
+    ~set_add_points_button.(Rect(730, 10, 100, 20));
+    ~set_save_data_button.(Rect(730, 40, 100, 20));
+    ~set_load_data_button.(Rect(730, 70, 100, 20));
+    ~set_train_button.(Rect(730, 100, 100, 20));
+    ~set_save_mlp_button.(Rect(730, 130, 100, 20));
+    ~set_load_mlp_button.(Rect(730, 160, 100, 20));
+    ~set_predicting_button.(Rect(730, 190, 100, 20));
+    ~set_play_synth_button.(Rect(730, 220, 100, 20));
+    ~set_params_changed_action.();
+};
+
+~get_mlp_regressor = {
+    var activation = FluidMLPRegressor.sigmoid;
+    FluidMLPRegressor(
+        hiddenLayers: [7],
+        activation: activation,
+        outputActivation: activation,
+        maxIter: 1000,
+        learnRate: 0.1,
+        batchSize: 1,
+        validation: 0
+    );
+};
+
 ~set_params_changed_action = {
     var set_synth_slider_value = {
         arg message;
@@ -245,32 +282,10 @@
     OSCdef(\params_changed, set_synth_slider_value, "/params_changed");
 };
 
-~set_x_y_slider = {
-    var bounds = Rect(420, 10, 300, 300);
-    var set_x_y_values = {
-        arg slider;
-        ~x_y_buffer.setn(0, [slider.x, slider.y]);
-    };
-    Slider2D(~window, bounds).action_(set_x_y_values);
-};
-
-~set_state = {
-    ~counter = 0;
-    ~window = Window("MLP Regressor").front;
-    ~synth_buffer = Buffer.alloc(s, numFrames: 10);
-    ~synth_slider = ~get_synth_slider.value();
-    ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
-    ~synth_data = FluidDataSet();
-    ~x_y_data = FluidDataSet();
-    ~mlp_regressor = ~get_mlp_regressor.();
-    ~set_window_items.();
-    ~set_params_changed_action.();
-};
-
 s.waitForBoot {
     "helpers.scd".load;
     ~reset.();
-    ~set_state.();
-    ~synth = ~play_synth.();
+    ~mlp_regressor = ~get_mlp_regressor.();
+    ~set_window_items.();
 };
 )
