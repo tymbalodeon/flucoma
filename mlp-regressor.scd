@@ -9,7 +9,7 @@
     MultiSliderView(~window, bounds)
     .elasticMode_(1)
     .isFilled_(1)
-    .background_(~background)
+    .background_(~gray)
     .colors_(~foreground)
     .fillColor_(~foreground)
     .indexThumbSize_(50)
@@ -26,7 +26,7 @@
     ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
     ~slider = Slider2D(~window, bounds)
     .action_(set_x_y_values)
-    .background_(~foreground)
+    .background_(~gray)
     .knobColor_(~background);
 };
 

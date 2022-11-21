@@ -1,3 +1,4 @@
+(
 ~background = Color.fromHexString("#282828");
 ~foreground = Color.fromHexString("#a89984");
 ~red = Color.fromHexString("#cc241d");
@@ -7,3 +8,5 @@
 ~purple = Color.fromHexString("#b16286");
 ~aqua = Color.fromHexString("#689d6a");
 ~orange = Color.fromHexString("#d65d0e");
+~gray = Color.fromHexString("#7f7061");
+)
