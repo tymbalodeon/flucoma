@@ -288,19 +288,21 @@
 };
 
 ~set_window_items = {
+    var width = 150;
+    var height = 30;
     ~window = Window("MLP Regressor")
     .background_(~background)
     .front;
-    ~synth_slider = ~get_synth_slider.(Rect(320, 10, 400, 300));
-    ~set_x_y_slider.(Rect(10, 10, 300, 300));
-    ~set_add_points_button.(Rect(730, 10, 100, 20));
-    ~set_save_data_button.(Rect(730, 40, 100, 20));
-    ~set_load_data_button.(Rect(730, 70, 100, 20));
-    ~set_train_button.(Rect(730, 100, 100, 20));
-    ~set_save_mlp_button.(Rect(730, 130, 100, 20));
-    ~set_load_mlp_button.(Rect(730, 160, 100, 20));
-    ~set_predicting_button.(Rect(730, 190, 100, 20));
-    ~set_play_synth_button.(Rect(730, 220, 100, 20));
+    ~set_x_y_slider.(Rect(10, 10, 310, 310));
+    ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
+    ~set_add_points_button.(Rect(740, 10, width, height));
+    ~set_save_data_button.(Rect(740, 50, width, height));
+    ~set_load_data_button.(Rect(740, 90, width, height));
+    ~set_train_button.(Rect(740, 130, width, height));
+    ~set_save_mlp_button.(Rect(740, 170, width, height));
+    ~set_load_mlp_button.(Rect(740, 210, width, height));
+    ~set_predicting_button.(Rect(740, 250, width, height));
+    ~set_play_synth_button.(Rect(740, 290, width, height));
     ~set_params_changed_action.();
 };
 
