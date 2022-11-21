@@ -24,14 +24,15 @@
         ~x_y_buffer.setn(0, [slider.x, slider.y]);
     };
     ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
-    Slider2D(~window, bounds)
+    ~slider = Slider2D(~window, bounds)
     .action_(set_x_y_values)
-    .background_(~background);
+    .background_(~foreground)
+    .knobColor_(~background);
 };
 
 ~set_add_points_button = {
     arg bounds;
-    var states = [["Add Points"]];
+    var states = [["Add Points", ~background, ~blue]];
     var add_point = {
         var round_to_one_decimal = {
             arg number;
@@ -180,7 +181,10 @@
 
 ~set_predicting_button = {
     arg bounds;
-    var states = [["Not Predicting"], ["Predicting"]];
+    var states = [
+        ["Not Predicting", ~background, ~orange],
+        ["Predicting", ~background, ~aqua]
+    ];
     var set_state = {
         arg button;
         ~predicting = button.value;

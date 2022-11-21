@@ -14,6 +14,13 @@
 
 ~set_button = {
     arg bounds, states, action;
+    states.do {
+        arg state, index;
+        if (state.size == 1) {
+            state = state ++ [~background, ~foreground];
+            states.put(index, state);
+        };
+    };
     Button(~window, bounds).states_(states).action_(action);
 };
 )
