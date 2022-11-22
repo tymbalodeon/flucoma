@@ -287,24 +287,36 @@
     ~set_button.(bounds, states, play_and_stop);
 };
 
+~set_random_point = {
+    var x, y; # x, y = Array.fill(2, { 1.0.rand });
+    ~x_y_buffer.setn(0, [x, y]);
+    ~x_y_slider.setXY(x, y);
+};
+
 ~set_random_point_button = {
     arg bounds;
     var states = [["Random"]];
-    var action = {
-        var x, y; # x, y = Array.fill(2, { 1.0.rand });
-        ~x_y_buffer.setn(0, [x, y]);
-        ~x_y_slider.setXY(x, y);
-    };
-    ~set_button.(bounds, states, action);
+    ~set_button.(bounds, states, ~set_random_point);
+};
+
+~set_random_synth_values = {
+    var value = Array.fill(10, { 1.0.rand });
+    ~synth_buffer.setn(0, value);
+    ~synth_slider.value = value;
 };
 
 ~set_random_values_button = {
     arg bounds;
     var states = [["Random"]];
+    ~set_button.(bounds, states, ~set_random_synth_values);
+};
+
+~set_random_association_button = {
+    arg bounds;
+    var states = [["Random point"]];
     var action = {
-        var value = Array.fill(10, { 1.0.rand });
-        ~synth_buffer.setn(0, value);
-        ~synth_slider.value = value;
+        ~set_random_point.();
+        ~set_random_synth_values.();
     };
     ~set_button.(bounds, states, action);
 };
@@ -327,6 +339,7 @@
     ~set_play_synth_button.(Rect(740, 290, width, height));
     ~set_random_point_button.(Rect(10, 330, width, height));
     ~set_random_values_button.(Rect(330, 330, width, height));
+    ~set_random_association_button.(Rect(740, 330, width, height));
     ~set_params_changed_action.();
 };
 
@@ -357,7 +370,7 @@ s.waitForBoot {
     "themes.scd".load;
     ~load_theme.();
     "helpers.scd".load;
-    ~reset.(meter: false);
+    ~reset.();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
 };
