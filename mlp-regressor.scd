@@ -287,13 +287,35 @@
     ~set_button.(bounds, states, play_and_stop);
 };
 
+~set_random_point_button = {
+    arg bounds;
+    var states = [["Random"]];
+    var action = {
+        var x, y; # x, y = Array.fill(2, { 1.0.rand });
+        ~x_y_buffer.setn(0, [x, y]);
+        ~x_y_slider.setXY(x, y);
+    };
+    ~set_button.(bounds, states, action);
+};
+
+~set_random_values_button = {
+    arg bounds;
+    var states = [["Random"]];
+    var action = {
+        var value = Array.fill(10, { 1.0.rand });
+        ~synth_buffer.setn(0, value);
+        ~synth_slider.value = value;
+    };
+    ~set_button.(bounds, states, action);
+};
+
 ~set_window_items = {
     var width = 150;
     var height = 30;
     ~window = Window("MLP Regressor")
     .background_(~background)
     .front;
-    ~set_x_y_slider.(Rect(10, 10, 310, 310));
+    ~x_y_slider = ~set_x_y_slider.(Rect(10, 10, 310, 310));
     ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
     ~set_add_points_button.(Rect(740, 10, width, height));
     ~set_save_data_button.(Rect(740, 50, width, height));
@@ -303,6 +325,8 @@
     ~set_load_mlp_button.(Rect(740, 210, width, height));
     ~set_predicting_button.(Rect(740, 250, width, height));
     ~set_play_synth_button.(Rect(740, 290, width, height));
+    ~set_random_point_button.(Rect(10, 330, width, height));
+    ~set_random_values_button.(Rect(330, 330, width, height));
     ~set_params_changed_action.();
 };
 
