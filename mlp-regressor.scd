@@ -355,8 +355,9 @@
 
 s.waitForBoot {
     "themes.scd".load;
+    ~load_theme.();
     "helpers.scd".load;
-    ~reset.();
+    ~reset.(meter: false);
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
 };
