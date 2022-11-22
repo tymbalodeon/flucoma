@@ -3,7 +3,7 @@
     arg bounds;
     var set_synth_slider_values = {
         arg synth_slider;
-        ~synth_buffer.setn(0, synth_slider.());
+        ~synth_buffer.setn(0, synth_slider.value);
     };
     ~synth_buffer = Buffer.alloc(s, numFrames: 10);
     MultiSliderView(~window, bounds)
@@ -332,7 +332,7 @@
 s.waitForBoot {
     "themes.scd".load;
     "helpers.scd".load;
-    ~reset.(meter: false);
+    ~reset.();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
 };

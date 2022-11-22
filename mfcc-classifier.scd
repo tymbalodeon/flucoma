@@ -97,7 +97,9 @@
             "training";
         };
     }.();
-    var states = [["Play % %".format(instrument_name, type)]];
+    var states = [
+        ["Play % %".format(instrument_name, type), ~background, ~green]
+    ];
     var play = {
         if (~synth == nil) {
             "Playing % %...".format(instrument_name, type).postln;
@@ -112,7 +114,7 @@
 
 ~set_stop_playing_button = {
     arg bounds;
-    var states = [["Stop", Color.white, Color.new255(139, 0, 0)]];
+    var states = [["Stop", ~foreground, ~red]];
     var stop_analyzing_and_playing = {
         if (~synth != nil) {
             ~synth.free;
@@ -245,7 +247,7 @@
 ~get_window = {
     var trombone_testing_audio = ~get_testing_audio.(~trombone_file);
     var oboe_testing_audio = ~get_testing_audio.(~oboe_file);
-    ~window = Window("MFCC Classifier").front;
+    ~window = Window("MFCC Classifier").background_(~background).front;
     ~set_play_button.(
         Rect(10, 10, 200, 50),
         ~get_training_audio.(~trombone_file),
