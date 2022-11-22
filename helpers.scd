@@ -1,6 +1,6 @@
 (
 ~reset = {
-    arg meter = true, plot_tree = false;
+    arg meter = false, plot_tree = false;
     s.freeAll;
     Window.closeAll;
     Buffer.freeAll;
