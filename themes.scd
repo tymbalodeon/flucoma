@@ -1,6 +1,7 @@
 (
 ~background = Color.fromHexString("#282828");
-~foreground = Color.fromHexString("#a89984");
+~highlight_background = Color.fromHexString("#504945");
+~foreground = Color.fromHexString("#fbf1c7");
 ~red = Color.fromHexString("#cc241d");
 ~green = Color.fromHexString("#98971a");
 ~yellow = Color.fromHexString("#d79921");
