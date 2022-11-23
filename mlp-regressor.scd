@@ -352,14 +352,15 @@
     ~set_button.(bounds, states, ~set_random_association);
 };
 
+~show_points = {
+    ~x_y_data.print;
+    ~synth_data.print;
+};
+
 ~set_show_points_button = {
     arg bounds;
     var states = [["Show points"]];
-    var action = {
-        ~x_y_data.print;
-        ~synth_data.print;
-    };
-    ~set_button.(bounds, states, action);
+    ~set_button.(bounds, states, ~show_points);
 };
 
 ~set_clear_points_button = {
@@ -382,6 +383,7 @@
         ~set_random_association.();
         add_point.();
     };
+    ~show_points.();
 };
 
 ~set_add_random_points_button = {
