@@ -352,9 +352,22 @@
     ~set_button.(bounds, states, ~set_random_association);
 };
 
+~post_values = {
+    arg dictionary;
+    dictionary["data"].do {
+        arg value;
+        value.postln;
+    };
+};
+
 ~show_points = {
-    ~x_y_data.print;
-    ~synth_data.print;
+    [~x_y_data, ~synth_data].do {
+        arg data;
+        data.dump {
+            arg values;
+            ~post_values.(values);
+        };
+    };
 };
 
 ~set_show_points_button = {
