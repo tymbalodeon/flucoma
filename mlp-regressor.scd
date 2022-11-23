@@ -83,6 +83,7 @@
 
 ~add_point = {
     arg display = true;
+    var point = "Point %".format(~counter);
     ~x_y_data.addPoint(point, ~x_y_buffer);
     ~synth_data.addPoint(point, ~synth_buffer);
     ~counter = ~counter + 1;
@@ -349,6 +350,16 @@
     ~set_button.(bounds, states, ~set_random_association);
 };
 
+~set_show_points_button = {
+    arg bounds;
+    var states = [["Show points"]];
+    var action = {
+        ~x_y_data.print;
+        ~synth_data.print;
+    };
+    ~set_button.(bounds, states, action);
+};
+
 ~set_clear_points_button = {
     arg bounds;
     var states = [["Clear points"]];
@@ -387,6 +398,7 @@
     ~set_add_points_button.(Rect(740, 10, width, height));
     ~set_add_random_points_button.(Rect(900, 50, width, height));
     ~set_clear_points_button.(Rect(900, 10, width, height));
+    ~set_show_points_button.(Rect(900, 90, width, height));
     ~set_save_data_button.(Rect(740, 50, width, height));
     ~set_load_data_button.(Rect(740, 90, width, height));
     ~set_train_button.(Rect(740, 130, width, height));
