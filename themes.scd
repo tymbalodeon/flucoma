@@ -1,7 +1,7 @@
 (
 ~load_theme = {
-    arg name;
-    if (name == "gruvbox") {
+    arg theme;
+    if (theme == "gruvbox") {
         ~background = Color.fromHexString("#282828");
         ~highlight_background = Color.fromHexString("#504945");
         ~foreground = Color.fromHexString("#fbf1c7");

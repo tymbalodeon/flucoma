@@ -1,11 +1,23 @@
 (
+~get_buffer = {
+    arg buffer, num_frames;
+    if (buffer != nil) {
+        buffer.free;
+    };
+    Buffer.alloc(s, numFrames: num_frames);
+};
+
+~set_synth_buffer = {
+    ~synth_buffer = ~get_buffer.(~synth_buffer, num_frames: 10);
+};
+
 ~get_synth_slider = {
     arg bounds;
     var set_synth_slider_values = {
         arg synth_slider;
         ~synth_buffer.setn(0, synth_slider.value);
     };
-    ~synth_buffer = Buffer.alloc(s, numFrames: 10);
+    ~set_synth_buffer.();
     MultiSliderView(~window, bounds)
     .elasticMode_(1)
     .isFilled_(1)
@@ -17,60 +29,75 @@
     .value_(0.5.dup(10));
 };
 
+~set_x_y_buffer = {
+    ~x_y_buffer = ~get_buffer.(~x_y_buffer, num_frames: 2);
+};
+
 ~set_x_y_slider = {
     arg bounds;
     var set_x_y_values = {
         arg slider;
         ~x_y_buffer.setn(0, [slider.x, slider.y]);
     };
-    ~x_y_buffer = Buffer.alloc(s, numFrames: 2);
+    ~set_x_y_buffer.();
     ~slider = Slider2D(~window, bounds)
     .action_(set_x_y_values)
     .background_(~highlight_background)
     .knobColor_(~background);
 };
 
-~set_add_points_button = {
-    arg bounds;
-    var states = [["Add Points", ~background, ~blue]];
-    var add_point = {
-        var round_to_one_decimal = {
-            arg number;
-            number.round(0.1);
-        };
-        var point = "Point %".format(~counter);
-        ~x_y_data.addPoint(point, ~x_y_buffer);
-        ~synth_data.addPoint(point, ~synth_buffer);
-        ~counter = ~counter + 1;
-        "%: ".format(point).post;
-        ~x_y_buffer.loadToFloatArray(action:{
+~round_to_one_decimal = {
+    arg number;
+    number.round(0.1);
+};
+
+~display_point = {
+    var point = "Point %".format(~counter);
+    "%: ".format(point).post;
+    ~x_y_buffer.loadToFloatArray(
+        action: {
             arg x_y_values;
             var x, y; # x, y = x_y_values;
             "{x: %, y: %}, Values: (".format(
-                round_to_one_decimal.(x),
-                round_to_one_decimal.(y)
+                ~round_to_one_decimal.(x),
+                ~round_to_one_decimal.(y)
             ).post;
-        });
-        ~synth_buffer.loadToFloatArray(
-            action: {
-                arg synth_values;
-                var last_index = synth_values.size - 1;
-                synth_values.do {
-                    arg value, index;
-                    var rounded_value = round_to_one_decimal.(value);
-                    if (index == last_index) {
-                        "%)".format(rounded_value).postln;
-                    } {
-                        "%, ".format(rounded_value).post;
-                    };
+        };
+    );
+    ~synth_buffer.loadToFloatArray(
+        action: {
+            arg synth_values;
+            var last_index = synth_values.size - 1;
+            synth_values.do {
+                arg value, index;
+                var rounded_value = ~round_to_one_decimal.(value);
+                if (index == last_index) {
+                    "%)".format(rounded_value).postln;
+                } {
+                    "%, ".format(rounded_value).post;
                 };
-            }
-        );
+            };
+        };
+    );
+};
+
+~add_point = {
+    arg display = true;
+    ~x_y_data.addPoint(point, ~x_y_buffer);
+    ~synth_data.addPoint(point, ~synth_buffer);
+    ~counter = ~counter + 1;
+    if (display == true) {
+        ~display_point.();
     };
+};
+
+~set_add_points_button = {
+    arg bounds;
+    var states = [["Add Point", ~background, ~blue]];
     ~counter = 0;
     ~x_y_data = FluidDataSet();
     ~synth_data = FluidDataSet();
-    ~set_button.(bounds, states, add_point);
+    ~set_button.(bounds, states, ~add_point);
 };
 
 ~get_x_y_data_json_file = {
@@ -311,14 +338,42 @@
     ~set_button.(bounds, states, ~set_random_synth_values);
 };
 
+~set_random_association = {
+    ~set_random_point.();
+    ~set_random_synth_values.();
+};
+
 ~set_random_association_button = {
     arg bounds;
     var states = [["Random point"]];
+    ~set_button.(bounds, states, ~set_random_association);
+};
+
+~set_clear_points_button = {
+    arg bounds;
+    var states = [["Clear points"]];
     var action = {
-        ~set_random_point.();
-        ~set_random_synth_values.();
+        ~set_x_y_buffer.();
+        ~set_synth_buffer.();
+        ~x_y_data.clear();
+        ~synth_data.clear();
+        ~counter = 0;
+        "Points cleared.".postln;
     };
     ~set_button.(bounds, states, action);
+};
+
+~add_random_points = {
+    10.do {
+        ~set_random_association.();
+        ~add_point.();
+    };
+};
+
+~set_add_random_points_button = {
+    arg bounds;
+    var states = [["Add random points"]];
+    ~set_button.(bounds, states, ~add_random_points);
 };
 
 ~set_window_items = {
@@ -330,6 +385,8 @@
     ~x_y_slider = ~set_x_y_slider.(Rect(10, 10, 310, 310));
     ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
     ~set_add_points_button.(Rect(740, 10, width, height));
+    ~set_add_random_points_button.(Rect(900, 50, width, height));
+    ~set_clear_points_button.(Rect(900, 10, width, height));
     ~set_save_data_button.(Rect(740, 50, width, height));
     ~set_load_data_button.(Rect(740, 90, width, height));
     ~set_train_button.(Rect(740, 130, width, height));
@@ -368,8 +425,9 @@
 
 s.waitForBoot {
     "themes.scd".load;
-    ~load_theme.();
     "helpers.scd".load;
+
+    ~load_theme.(theme: "gruvbox");
     ~reset.();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
