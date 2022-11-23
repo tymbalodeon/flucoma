@@ -83,12 +83,14 @@
 
 ~add_point = {
     arg display = true;
-    var point = "Point %".format(~counter);
-    ~x_y_data.addPoint(point, ~x_y_buffer);
-    ~synth_data.addPoint(point, ~synth_buffer);
-    ~counter = ~counter + 1;
-    if (display == true) {
-        ~display_point.();
+    {
+        var point = "Point %".format(~counter);
+        ~x_y_data.addPoint(point, ~x_y_buffer);
+        ~synth_data.addPoint(point, ~synth_buffer);
+        ~counter = ~counter + 1;
+        if (display == true) {
+            ~display_point.();
+        };
     };
 };
 
@@ -98,7 +100,7 @@
     ~counter = 0;
     ~x_y_data = FluidDataSet();
     ~synth_data = FluidDataSet();
-    ~set_button.(bounds, states, ~add_point);
+    ~set_button.(bounds, states, ~add_point.());
 };
 
 ~get_x_y_data_json_file = {
@@ -375,9 +377,10 @@
 };
 
 ~add_random_points = {
+    var add_point = ~add_point.(display: false);
     10.do {
         ~set_random_association.();
-        ~add_point.();
+        add_point.();
     };
 };
 
