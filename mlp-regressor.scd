@@ -96,7 +96,7 @@
 
 ~set_add_points_button = {
     arg bounds;
-    var states = [["Add Point", ~background, ~blue]];
+    var states = [["Add Point", ~foreground, ~blue]];
     ~counter = 0;
     ~x_y_data = FluidDataSet();
     ~synth_data = FluidDataSet();
@@ -170,7 +170,7 @@
 
 ~set_train_button = {
     arg bounds;
-    var states = [["Train"]];
+    var states = [["Train", ~foreground, ~purple]];
     var train = ~train_regressor;
     ~set_button.(bounds, states, train);
 };
@@ -212,8 +212,8 @@
 ~set_predicting_button = {
     arg bounds;
     var states = [
-        ["Not Predicting", ~background, ~orange],
-        ["Predicting", ~background, ~aqua]
+        ["Not Predicting", ~foreground, ~orange],
+        ["Predicting", ~foreground, ~aqua]
     ];
     var set_state = {
         arg button;
@@ -303,8 +303,8 @@
 ~set_play_synth_button = {
     arg bounds;
     var states = [
-        ["Play", ~background, ~green],
-        ["Stop", ~background, ~red]
+        ["Play", ~foreground, ~green],
+        ["Stop", ~foreground, ~red]
     ];
     var play_and_stop = {
         arg button;
