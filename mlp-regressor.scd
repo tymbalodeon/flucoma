@@ -364,11 +364,22 @@
 };
 
 ~show_points = {
-    [~x_y_data, ~synth_data].do {
-        arg data;
-        data.dump {
-            arg values;
-            ~post_values.(values);
+    var data_array = [~x_y_data, ~synth_data];
+    data_array.do {
+        arg data, index;
+        data.size {
+            arg size;
+            if (size != 0) {
+                data.dump {
+                    arg values;
+                    ~post_values.(values);
+                };
+            } {
+                var last_index = data_array.size - 1;
+                if (index == last_index) {
+                    "No points.".postln;
+                };
+            };
         };
     };
 };
