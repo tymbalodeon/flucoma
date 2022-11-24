@@ -51,8 +51,11 @@
     number.round(0.1);
 };
 
-~display_point = {
+~add_point = {
     var point = "Point %".format(~counter);
+    ~x_y_data.addPoint(point, ~x_y_buffer);
+    ~synth_data.addPoint(point, ~synth_buffer);
+    ~counter = ~counter + 1;
     "%: ".format(point).post;
     ~x_y_buffer.loadToFloatArray(
         action: {
@@ -81,26 +84,13 @@
     );
 };
 
-~add_point = {
-    arg display = true;
-    {
-        var point = "Point %".format(~counter);
-        ~x_y_data.addPoint(point, ~x_y_buffer);
-        ~synth_data.addPoint(point, ~synth_buffer);
-        ~counter = ~counter + 1;
-        if (display == true) {
-            ~display_point.();
-        };
-    };
-};
-
 ~set_add_points_button = {
     arg bounds;
     var states = [["Add Point", ~foreground, ~blue]];
     ~counter = 0;
     ~x_y_data = FluidDataSet();
     ~synth_data = FluidDataSet();
-    ~set_button.(bounds, states, ~add_point.());
+    ~set_button.(bounds, states, ~add_point);
 };
 
 ~get_x_y_data_json_file = {
@@ -323,7 +313,9 @@
 ~set_random_point = {
     var x, y; # x, y = Array.fill(2, { 1.0.rand });
     ~x_y_buffer.setn(0, [x, y]);
-    ~x_y_slider.setXY(x, y);
+    defer {
+        ~x_y_slider.setXY(x, y);
+    };
 };
 
 ~set_random_point_button = {
@@ -335,7 +327,9 @@
 ~set_random_synth_values = {
     var value = Array.fill(10, { 1.0.rand });
     ~synth_buffer.setn(0, value);
-    ~synth_slider.value = value;
+    defer {
+        ~synth_slider.value = value;
+    };
 };
 
 ~set_random_values_button = {
@@ -405,12 +399,13 @@
 };
 
 ~add_random_points = {
-    var add_point = ~add_point.(display: false);
-    10.do {
-        ~set_random_association.();
-        add_point.();
+    fork {
+        10.do {
+            ~set_random_association.();
+            s.sync;
+            ~add_point.();
+        };
     };
-    ~show_points.();
 };
 
 ~set_add_random_points_button = {
