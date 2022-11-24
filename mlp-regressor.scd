@@ -417,9 +417,9 @@
     ~x_y_slider = ~set_x_y_slider.(Rect(10, 10, 310, 310));
     ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
     ~set_add_points_button.(Rect(740, 10, width, height));
-    ~set_add_random_points_button.(Rect(900, 50, width, height));
-    ~set_clear_points_button.(Rect(900, 10, width, height));
-    ~set_show_points_button.(Rect(900, 90, width, height));
+    ~set_add_random_points_button.(Rect(900, 330, width, height));
+    ~set_show_points_button.(Rect(900, 10, width, height));
+    ~set_clear_points_button.(Rect(1060, 10, width, height));
     ~set_save_data_button.(Rect(740, 50, width, height));
     ~set_load_data_button.(Rect(740, 90, width, height));
     ~set_train_button.(Rect(740, 130, width, height));
