@@ -52,7 +52,7 @@
 };
 
 ~add_point = {
-    var point = "Point %".format(~counter);
+    var point = "Point %".format(~counter + 1);
     ~x_y_data.addPoint(point, ~x_y_buffer);
     ~synth_data.addPoint(point, ~synth_buffer);
     ~counter = ~counter + 1;
