@@ -399,8 +399,9 @@
 };
 
 ~add_random_points = {
+    arg number_of_points = 10;
     fork {
-        10.do {
+        number_of_points.do {
             ~set_random_association.();
             s.sync;
             ~add_point.();
