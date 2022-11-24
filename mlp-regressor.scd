@@ -302,7 +302,10 @@
 
 ~set_play_synth_button = {
     arg bounds;
-    var states = [["Play", ~background, ~green], ["Stop", ~background, ~red]];
+    var states = [
+        ["Play", ~background, ~green],
+        ["Stop", ~background, ~red]
+    ];
     var play_and_stop = {
         arg button;
         if (button.value == 1) {
@@ -325,7 +328,7 @@
 
 ~set_random_point_button = {
     arg bounds;
-    var states = [["Random"]];
+    var states = [["Random", ~background, ~yellow]];
     ~set_button.(bounds, states, ~set_random_point);
 };
 
@@ -337,7 +340,7 @@
 
 ~set_random_values_button = {
     arg bounds;
-    var states = [["Random"]];
+    var states = [["Random", ~background, ~yellow]];
     ~set_button.(bounds, states, ~set_random_synth_values);
 };
 
@@ -348,7 +351,7 @@
 
 ~set_random_association_button = {
     arg bounds;
-    var states = [["Random point"]];
+    var states = [["Random association", ~background, ~yellow]];
     ~set_button.(bounds, states, ~set_random_association);
 };
 
@@ -378,7 +381,7 @@
 
 ~set_clear_points_button = {
     arg bounds;
-    var states = [["Clear points"]];
+    var states = [["Clear points", ~foreground, ~highlight_background]];
     var action = {
         ~set_x_y_buffer.();
         ~set_synth_buffer.();
@@ -401,7 +404,7 @@
 
 ~set_add_random_points_button = {
     arg bounds;
-    var states = [["Add random points"]];
+    var states = [["Add random points", ~background, ~yellow]];
     ~set_button.(bounds, states, ~add_random_points);
 };
 
