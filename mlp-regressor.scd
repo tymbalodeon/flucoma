@@ -349,17 +349,18 @@
     ~set_button.(bounds, states, ~set_random_association);
 };
 
-~post_values = {
+~get_values = {
     arg dictionary;
+    var data = Array.new();
     dictionary["data"].do {
         arg value;
-        value.postln;
+        data = data.add(value);
     };
+    data;
 };
 
 ~show_points = {
     var data_array = [~x_y_data, ~synth_data];
-    var values = Array.fill();
     data_array.do {
         arg data, index;
         data.size {
@@ -367,7 +368,8 @@
             if (size != 0) {
                 data.dump {
                     arg values;
-                    ~post_values.(values);
+                    var result = ~get_values.(values);
+                    result.postln;
                 };
             } {
                 var last_index = data_array.size - 1;
