@@ -359,6 +359,7 @@
 
 ~show_points = {
     var data_array = [~x_y_data, ~synth_data];
+    var values = Array.fill();
     data_array.do {
         arg data, index;
         data.size {
@@ -400,11 +401,13 @@
 
 ~add_random_points = {
     arg number_of_points = 10;
-    fork {
-        number_of_points.do {
-            ~set_random_association.();
-            s.sync;
-            ~add_point.();
+    {
+        fork {
+            number_of_points.do {
+                ~set_random_association.();
+                s.sync;
+                ~add_point.();
+            };
         };
     };
 };
@@ -412,7 +415,7 @@
 ~set_add_random_points_button = {
     arg bounds;
     var states = [["Add random points", ~background, ~yellow]];
-    ~set_button.(bounds, states, ~add_random_points);
+    ~set_button.(bounds, states, ~add_random_points.());
 };
 
 ~set_window_items = {
