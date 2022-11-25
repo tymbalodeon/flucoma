@@ -8,7 +8,11 @@
 };
 
 ~set_synth_buffer = {
-    ~synth_buffer = ~get_buffer.(~synth_buffer, num_frames: 10);
+    ~number_of_synth_parameters = 10;
+    ~synth_buffer = ~get_buffer.(
+        ~synth_buffer,
+        num_frames: ~number_of_synth_parameters
+    );
 };
 
 ~get_synth_slider = {
@@ -26,11 +30,15 @@
     .fillColor_(~foreground)
     .indexThumbSize_(50)
     .action_(set_synth_slider_values)
-    .value_(0.5.dup(10));
+    .value_(0.5.dup(~number_of_synth_parameters));
 };
 
 ~set_x_y_buffer = {
-    ~x_y_buffer = ~get_buffer.(~x_y_buffer, num_frames: 2);
+    ~number_of_control_parameters = 2;
+    ~x_y_buffer = ~get_buffer.(
+        ~x_y_buffer,
+        num_frames: ~number_of_control_parameters
+    );
 };
 
 ~set_x_y_slider = {
@@ -311,7 +319,7 @@
 };
 
 ~set_random_point = {
-    var x, y; # x, y = Array.fill(2, { 1.0.rand });
+    var x, y; # x, y = Array.fill(~number_of_control_parameters, { 1.0.rand });
     ~x_y_buffer.setn(0, [x, y]);
     defer {
         ~x_y_slider.setXY(x, y);
@@ -325,7 +333,7 @@
 };
 
 ~set_random_synth_values = {
-    var value = Array.fill(10, { 1.0.rand });
+    var value = Array.fill(~number_of_synth_parameters, { 1.0.rand });
     ~synth_buffer.setn(0, value);
     defer {
         ~synth_slider.value = value;
