@@ -393,12 +393,17 @@
         };
     };
     fork {
+        var x_y_data, synth_data;
         condition.wait {
             points.size == 2;
         };
-        points.do {
+        # x_y_data, synth_data = points;
+        [x_y_data, synth_data].do {
             arg data;
-            data.postln;
+            data.do {
+                arg item;
+                item.postln;
+            };
         };
     };
 };
