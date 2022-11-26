@@ -369,22 +369,36 @@
 
 ~show_points = {
     var data_array = [~x_y_data, ~synth_data];
-    data_array.do {
-        arg data, index;
-        data.size {
-            arg size;
-            if (size != 0) {
-                data.dump {
-                    arg values;
-                    var result = ~get_values.(values);
-                    result.postln;
-                };
-            } {
-                var last_index = data_array.size - 1;
-                if (index == last_index) {
-                    "No points.".postln;
+    var points = Array(maxSize: 2);
+    var condition = CondVar();
+    fork {
+        data_array.do {
+            arg data, index;
+            data.size {
+                arg size;
+                if (size != 0) {
+                    data.dump {
+                        arg values;
+                        var points_data = ~get_values.(values);
+                        points.add(points_data);
+                        condition.signalAll;
+                    };
+                } {
+                    var last_index = data_array.size - 1;
+                    if (index == last_index) {
+                        "No points.".postln;
+                    };
                 };
             };
+        };
+    };
+    fork {
+        condition.wait {
+            points.size == 2;
+        };
+        points.do {
+            arg data;
+            data.postln;
         };
     };
 };
