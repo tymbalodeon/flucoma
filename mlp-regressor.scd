@@ -453,7 +453,6 @@
         fork {
             number_of_points.do {
                 ~set_random_association.();
-                s.sync;
                 ~add_point.();
             };
             if (condition != nil) {
