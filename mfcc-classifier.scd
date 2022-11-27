@@ -293,7 +293,7 @@ s.waitForBoot {
     ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
     ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
     "helpers.scd".load;
-    ~reset.();
+    ~launch.();
     ~get_window.();
 };
 )

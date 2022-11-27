@@ -207,7 +207,7 @@
 ~main = {
     arg input_folder, threshold = 0.05;
     "helpers.scd".load;
-    ~reset.();
+    ~launch.();
     ~open_plotter.(input_folder, threshold);
 
 };

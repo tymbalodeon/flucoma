@@ -545,7 +545,6 @@
 s.waitForBoot {
     "themes.scd".load;
     "helpers.scd".load;
-
     ~load_theme.(theme: \gruvbox);
     ~launch.();
     ~mlp_regressor = ~get_mlp_regressor.();
