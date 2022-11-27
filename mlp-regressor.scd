@@ -448,7 +448,7 @@
 };
 
 ~add_random_points = {
-    arg number_of_points = 10;
+    arg number_of_points = 10, condition;
     {
         fork {
             number_of_points.do {
@@ -456,6 +456,9 @@
                 s.sync;
                 ~add_point.();
             };
+            if (condition != nil) {
+                condition.signalAll;
+            }
         };
     };
 };
@@ -464,6 +467,21 @@
     arg bounds;
     var states = [["Add random points", ~background, ~yellow]];
     ~set_button.(bounds, states, ~add_random_points.());
+};
+
+~set_get_random_instrument_button = {
+    arg bounds;
+    var states = [["Get random instrument", ~background, ~yellow]];
+    var action = {
+        var condition = CondVar();
+        var add_random_points = ~add_random_points.(condition: condition);
+        fork {
+            add_random_points.();
+            condition.wait;
+            ~train_regressor.();
+        };
+    };
+    ~set_button.(bounds, states, action);
 };
 
 ~set_window_items = {
@@ -476,6 +494,7 @@
     ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
     ~set_add_points_button.(Rect(740, 10, width, height));
     ~set_add_random_points_button.(Rect(900, 330, width, height));
+    ~set_get_random_instrument_button.(Rect(1060, 330, width, height));
     ~set_show_points_button.(Rect(900, 10, width, height));
     ~set_clear_points_button.(Rect(1060, 10, width, height));
     ~set_save_data_button.(Rect(740, 50, width, height));
