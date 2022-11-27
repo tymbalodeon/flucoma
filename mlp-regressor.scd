@@ -470,7 +470,7 @@
 };
 
 ~set_get_random_instrument_button = {
-    arg bounds;
+    arg bounds, number_of_trainings = 10;
     var states = [["Get random instrument", ~background, ~yellow]];
     var action = {
         var condition = CondVar();
@@ -478,7 +478,10 @@
         fork {
             add_random_points.();
             condition.wait;
-            ~train_regressor.();
+            number_of_trainings.do {
+                ~train_regressor.();
+                s.sync;
+            };
         };
     };
     ~set_button.(bounds, states, action);
