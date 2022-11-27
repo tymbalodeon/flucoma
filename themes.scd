@@ -3,7 +3,7 @@
     arg theme;
     switch (
         theme,
-        "gruvbox", {
+        \gruvbox, {
             ~background = Color.fromHexString("#282828");
             ~highlight_background = Color.fromHexString("#504945");
             ~foreground = Color.fromHexString("#fbf1c7");
@@ -15,7 +15,7 @@
             ~aqua = Color.fromHexString("#689d6a");
             ~orange = Color.fromHexString("#d65d0e");
             ~gray = Color.fromHexString("#7f7061");
-        }, "lantern", {
+        }, \lantern, {
             ~background = Color.fromHexString("#261b17");
             ~highlight_background = Color.fromHexString("#291812");
             ~foreground = Color.fromHexString("#e4cbb3");

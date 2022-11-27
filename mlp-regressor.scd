@@ -369,10 +369,17 @@
 
 ~get_values = {
     arg dictionary;
-    var data = Array.new();
-    dictionary["data"].do {
+    var size, data;
+    dictionary = dictionary["data"];
+    size = dictionary.size;
+    data = Array(maxSize: size);
+    dictionary.asSortedArray.do {
         arg value;
-        data = data.add(value);
+        var point_number, index;
+        var key, values; # key, values = value;
+        point_number = key.findRegexp("[0-9]+\$")[0][1].asInteger;
+        index = point_number - 1;
+        data = data.insert(index, values);
     };
     data;
 };
@@ -511,7 +518,7 @@ s.waitForBoot {
     "themes.scd".load;
     "helpers.scd".load;
 
-    ~load_theme.(theme: "gruvbox");
+    ~load_theme.(theme: \gruvbox);
     ~reset.();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
