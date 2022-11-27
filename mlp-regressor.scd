@@ -59,36 +59,46 @@
     number.round(0.1);
 };
 
+~post_point = {
+    arg index;
+    var point = "Point %".format(index + 1);
+    "%: ".format(point).post;
+};
+
+~post_x_y_values = {
+    arg x_y_values;
+    var x, y; # x, y = x_y_values;
+    "{x: %, y: %}, Values: (".format(
+        ~round_to_one_decimal.(x),
+        ~round_to_one_decimal.(y)
+    ).post;
+};
+
+~post_synth_values = {
+    arg synth_values;
+    var last_index = synth_values.size - 1;
+    synth_values.do {
+        arg value, index;
+        var rounded_value = ~round_to_one_decimal.(value);
+        if (index == last_index) {
+            "%)".format(rounded_value).postln;
+        } {
+            "%, ".format(rounded_value).post;
+        };
+    };
+};
+
 ~add_point = {
     var point = "Point %".format(~counter + 1);
     ~x_y_data.addPoint(point, ~x_y_buffer);
     ~synth_data.addPoint(point, ~synth_buffer);
+    ~post_point.(~counter);
     ~counter = ~counter + 1;
-    "%: ".format(point).post;
     ~x_y_buffer.loadToFloatArray(
-        action: {
-            arg x_y_values;
-            var x, y; # x, y = x_y_values;
-            "{x: %, y: %}, Values: (".format(
-                ~round_to_one_decimal.(x),
-                ~round_to_one_decimal.(y)
-            ).post;
-        };
+        action: ~post_x_y_values;
     );
     ~synth_buffer.loadToFloatArray(
-        action: {
-            arg synth_values;
-            var last_index = synth_values.size - 1;
-            synth_values.do {
-                arg value, index;
-                var rounded_value = ~round_to_one_decimal.(value);
-                if (index == last_index) {
-                    "%)".format(rounded_value).postln;
-                } {
-                    "%, ".format(rounded_value).post;
-                };
-            };
-        };
+        action: ~post_synth_values;
     );
 };
 
@@ -393,16 +403,18 @@
         };
     };
     fork {
-        var x_y_data, synth_data;
+        var x_y_data, synth_data, size;
         condition.wait {
             points.size == 2;
         };
         # x_y_data, synth_data = points;
-        [x_y_data, synth_data].do {
-            arg data;
-            data.do {
-                arg item;
-                item.postln;
+        size = x_y_data.size;
+        if (size == synth_data.size) {
+            size.do {
+                arg index;
+                ~post_point.(index);
+                ~post_x_y_values.(x_y_data[index]);
+                ~post_synth_values.(synth_data[index]);
             };
         };
     };
