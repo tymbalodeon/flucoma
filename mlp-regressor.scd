@@ -486,6 +486,12 @@
     ~set_button.(bounds, states, action);
 };
 
+~set_close_button = {
+    arg bounds;
+    var states = [["Exit"]];
+    ~set_button.(bounds, states, ~exit);
+};
+
 ~set_window_items = {
     var width = 150;
     var height = 30;
@@ -509,6 +515,7 @@
     ~set_random_point_button.(Rect(10, 330, width, height));
     ~set_random_values_button.(Rect(330, 330, width, height));
     ~set_random_association_button.(Rect(740, 330, width, height));
+    ~set_close_button.(Rect(1060, 290, width, height));
     ~set_params_changed_action.();
 };
 
@@ -540,7 +547,7 @@ s.waitForBoot {
     "helpers.scd".load;
 
     ~load_theme.(theme: \gruvbox);
-    ~reset.();
+    ~launch.();
     ~mlp_regressor = ~get_mlp_regressor.();
     ~set_window_items.();
 };

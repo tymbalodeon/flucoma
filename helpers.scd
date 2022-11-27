@@ -1,9 +1,14 @@
 (
-~reset = {
-    arg meter = false, plot_tree = false;
+~exit = {
     s.freeAll;
     Window.closeAll;
     Buffer.freeAll;
+    currentEnvironment.clear;
+};
+
+~reset = {
+    arg meter = false, plot_tree = false;
+    ~exit.();
     if (meter == true) {
         ServerMeter(s, numIns: 2, numOuts: 2);
     };
