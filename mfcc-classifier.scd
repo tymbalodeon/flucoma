@@ -228,12 +228,6 @@
     ~set_button.(bounds, states, play_and_stop_predictions);
 };
 
-~load_audio_file = {
-    arg filename, start_frame = 0, num_frames = -1;
-    var path = FluidFilesPath(filename);
-    Buffer.read(s, path, start_frame, num_frames);
-};
-
 ~get_training_audio = {
     arg filename;
     ~load_audio_file.(filename, num_frames: ~split_frame);
@@ -289,10 +283,11 @@
 };
 
 s.waitForBoot {
+    "audio_file.scd".load;
+    "gui.scd".load;
     ~split_frame = 1783040;
     ~trombone_file = "Olencki-TenTromboneLongTones-M.wav";
     ~oboe_file = "Harker-DS-TenOboeMultiphonics-M.wav";
-    "helpers.scd".load;
     ~launch.();
     ~get_window.();
 };

@@ -169,11 +169,7 @@
 };
 
 ~train_regressor = {
-    var post_loss = {
-        arg loss;
-        "Training loss: %".format(loss).postln;
-    };
-    ~mlp_regressor.fit(~x_y_data, ~synth_data, post_loss);
+    ~mlp_regressor.fit(~x_y_data, ~synth_data, ~post_loss);
 };
 
 ~set_train_button = {
@@ -543,8 +539,9 @@
 };
 
 s.waitForBoot {
+    "gui.scd".load;
+    "post.scd".load;
     "themes.scd".load;
-    "helpers.scd".load;
     ~load_theme.(theme: \gruvbox);
     ~launch.();
     ~mlp_regressor = ~get_mlp_regressor.();
