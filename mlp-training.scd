@@ -30,7 +30,7 @@ s.waitForBoot {
             s,
             input,
             features: ~pitch_features,
-            windowSize: 2048
+            windowSize: 2048,
             action: {
                 arg features;
                 number_of_features = features.numFrames;
