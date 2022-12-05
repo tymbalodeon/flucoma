@@ -1,23 +1,21 @@
 (
-~start_frame = 27402;
-~num_frames = 257199;
-~trombone = ~load_audio_file.(
-    "Olencki-TenTromboneLongTones-M.wav",
-    ~start_frame,
-    ~num_frames
-);
-~oboe = ~load_audio_file.(
-    "Harker-DS-TenOboeMultiphonics-M.wav",
-    ~start_frame,
-    ~num_frames
-);
-
-
 s.waitForBoot {
     "audio_file.scd".load;
     "gui.scd".load;
     "post.scd".load;
     ~reset.();
+    ~start_frame = 27402;
+    ~num_frames = 257199;
+    ~trombone = ~load_audio_file.(
+        "Olencki-TenTromboneLongTones-M.wav",
+        ~start_frame,
+        ~num_frames
+    );
+    ~oboe = ~load_audio_file.(
+        "Harker-DS-TenOboeMultiphonics-M.wav",
+        ~start_frame,
+        ~num_frames
+    );
     ~window = Window("MLP Training").front;
     ~data = FluidDataSet();
     ~labels = FluidLabelSet();
