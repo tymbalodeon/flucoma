@@ -25,15 +25,20 @@ s.waitForBoot {
     ~point = Buffer();
     [~trombone, ~oboe].do {
         arg input, instrument_index;
+        var number_of_features;
         FluidBufPitch.processBlocking(
             s,
             input,
             features: ~pitch_features,
             windowSize: 2048
+            action: {
+                arg features;
+                number_of_features = features.numFrames;
+            }
         );
-        252.do { // I happen to know there are 252 frames in this buffer
+        number_of_features.do {
             arg frame_index;
-            var id = "Point %".format((instrument_index * 252) + frame_index);
+            var id = "Point %".format((instrument_index * number_of_features) + frame_index);
             var label = ["trombone", "oboe"][instrument_index];
             FluidBufFlatten.processBlocking(
                 s,
