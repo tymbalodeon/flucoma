@@ -15,11 +15,15 @@
     };
 };
 
-s.waitForBoot {
-    ~reset.();
+~import  = {
     "audio_file.scd".load;
     "gui.scd".load;
     "post.scd".load;
+};
+
+s.waitForBoot {
+    ~reset.();
+    ~import.();
     ~start_frame = 27402;
     ~num_frames = 257199;
     ~trombone = ~load_audio_file.(
