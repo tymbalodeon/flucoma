@@ -3,7 +3,6 @@
     s.freeAll;
     Window.closeAll;
     Buffer.freeAll;
-    currentEnvironment.clear;
 };
 
 ~reset = {

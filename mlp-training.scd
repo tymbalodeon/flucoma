@@ -3,7 +3,8 @@
     arg file_names;
     var start_frame = 27402;
     var num_frames = 257199;
-    ~audio_files = Array();
+    var number_of_files = file_names.size;
+    var audio_files = Array(maxSize: number_of_files);
     file_names.do {
         arg file_name;
         var audio_file = ~load_audio_file.(
@@ -11,27 +12,21 @@
             start_frame,
             num_frames
         );
-        ~audio_files.add(audio_file);
+        audio_files.add(audio_file);
     };
+    audio_files;
 };
 
 s.waitForBoot {
-    ~reset.();
     "audio_file.scd".load;
     "gui.scd".load;
     "post.scd".load;
-    ~start_frame = 27402;
-    ~num_frames = 257199;
-    ~trombone = ~load_audio_file.(
+    ~reset.();
+    ~file_names = [
         "Olencki-TenTromboneLongTones-M.wav",
-        ~start_frame,
-        ~num_frames
-    );
-    ~oboe = ~load_audio_file.(
-        "Harker-DS-TenOboeMultiphonics-M.wav",
-        ~start_frame,
-        ~num_frames
-    );
+        "Harker-DS-TenOboeMultiphonics-M.wav"
+    ];
+    ~audio_files = ~load_audio_files.(~file_names);
     // ~window = Window("MLP Training").front;
     ~data = FluidDataSet();
     ~labels = FluidLabelSet();
@@ -40,9 +35,8 @@ s.waitForBoot {
     ~is_done = CondVar();
     fork {
         var condition = CondVar();
-        var audio_files = [~trombone, ~oboe];
-        var last_index = audio_files.size - 1;
-        audio_files.do {
+        var last_index = ~audio_files.size - 1;
+        ~audio_files.do {
             arg input, instrument_index;
             var number_of_features;
             FluidBufPitch.processBlocking(
