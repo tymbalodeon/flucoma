@@ -230,12 +230,12 @@
 
 ~get_training_audio = {
     arg filename;
-    ~load_audio_file.(filename, num_frames: ~split_frame);
+    ~get_audio_file.(filename, num_frames: ~split_frame);
 };
 
 ~get_testing_audio = {
     arg filename;
-    ~load_audio_file.(filename, start_frame: ~split_frame);
+    ~get_audio_file.(filename, start_frame: ~split_frame);
 };
 
 ~get_window = {

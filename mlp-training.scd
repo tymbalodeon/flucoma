@@ -1,22 +1,4 @@
 (
-~load_audio_files = {
-    arg file_names;
-    var start_frame = 27402;
-    var num_frames = 257199;
-    var number_of_files = file_names.size;
-    var audio_files = Array(maxSize: number_of_files);
-    file_names.do {
-        arg file_name;
-        var audio_file = ~load_audio_file.(
-            file_name,
-            start_frame,
-            num_frames
-        );
-        audio_files.add(audio_file);
-    };
-    audio_files;
-};
-
 s.waitForBoot {
     "audio_file.scd".load;
     "gui.scd".load;
@@ -26,7 +8,11 @@ s.waitForBoot {
         "Olencki-TenTromboneLongTones-M.wav",
         "Harker-DS-TenOboeMultiphonics-M.wav"
     ];
-    ~audio_files = ~load_audio_files.(~file_names);
+    ~audio_files = ~get_audio_files.(
+        ~file_names,
+        start_frame: 27402,
+        num_frames: 257199
+    );
     // ~window = Window("MLP Training").front;
     ~data = FluidDataSet();
     ~labels = FluidLabelSet();
