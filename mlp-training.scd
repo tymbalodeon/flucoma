@@ -46,8 +46,7 @@ s.waitForBoot {
             arg input, instrument_index;
             var number_of_features;
             FluidBufPitch.processBlocking(
-                s,
-                input,
+                source: input,
                 features: ~pitch_features,
                 windowSize: 2048,
                 action: {
@@ -61,14 +60,15 @@ s.waitForBoot {
             };
             number_of_features.do {
                 arg frame_index;
-                var id = "Point %".format((instrument_index * number_of_features) + frame_index);
+                var start_index = instrument_index * number_of_features;
+                var point_number = start_index + frame_index;
+                var id = "Point %".format(point_number);
                 var label = ["trombone", "oboe"][instrument_index];
                 FluidBufFlatten.processBlocking(
-                    s,
-                    ~pitch_features,
-                    frame_index,
-                    1,
-                    destination:~point
+                    source: ~pitch_features,
+                    startFrame: frame_index,
+                    numFrames: 1,
+                    destination: ~point
                 );
                 ~data.addPoint(id, ~point);
                 ~labels.addLabel(id, label);
