@@ -81,12 +81,8 @@ s.waitForBoot {
     fork {
         ~is_done.wait;
         FluidNormalize().fitTransform(~data, ~data);
-        ~data.size.postln;
-        ~data.print;
-        ~labels.print;
         ~data.dump {
             arg dictionary;
-            dictionary.postln;
             ~labels.dump {
                 arg labels;
                 defer{
