@@ -57,8 +57,8 @@
     };
 };
 
-~get_mlp_regressor = {
-    ~mlp_regressor = FluidMLPClassifier(
+~get_mlp_classifier = {
+    ~mlp_classifier = FluidMLPClassifier(
         hiddenLayers: [3],
         activation: FluidMLPClassifier.sigmoid,
         maxIter: 20,
@@ -69,7 +69,7 @@
 };
 
 ~train = {
-    ~mlp_regressor.fit(
+    ~mlp_classifier.fit(
         ~data,
         ~labels,
         {
@@ -94,22 +94,25 @@
             ~train.();
         };
     };
-    ~get_mlp_regressor.();
+    ~get_mlp_classifier.();
     ~is_training = true;
     ~set_button.(bounds, states, action);
 };
 
 ~set_learn_rate_button = {
-
-};
-
-~set_batch_size_button = {
-
+    arg bounds;
+    Slider(~window, bounds)
+    .orientation_(\vertical)
+    .action_ {
+        arg slider;
+        ~mlp_classifier.learnRate_(slider.value);
+    };
 };
 
 ~get_window = {
     ~window = Window("MLP Training").front;
     ~set_train_button.(Rect(10, 10, 150, 30));
+    ~set_learn_rate_button.(Rect(10, 50, 30, 200));
 };
 
 s.waitForBoot {
@@ -135,13 +138,12 @@ s.waitForBoot {
     // ~plot_points.();
     ~get_window.();
 
-    // ~mlp_regressor.learnRate_(0.02);  // won't reset the neural network
-    // ~mlp_regressor.batchSize_(2);     // won't reset the neural network
-    // ~mlp_regressor.maxIter_(50);      // won't reset the neural network
-    // ~mlp_regressor.validation_(0.05); // won't reset the neural network
-    // ~mlp_regressor.momentum_(0.95);   // won't reset the neural network
+    // ~mlp_classifier.batchSize_(2);     // won't reset the neural network
+    // ~mlp_classifier.maxIter_(50);      // won't reset the neural network
+    // ~mlp_classifier.validation_(0.05); // won't reset the neural network
+    // ~mlp_classifier.momentum_(0.95);   // won't reset the neural network
 
-    // ~mlp_regressor.hiddenLayers_([2]);      // *will* reset the neural network
-    // ~mlp_regressor.activation_(FluidMLPClassifier.tanh); // *will* reset the neural network
+    // ~mlp_classifier.hiddenLayers_([2]);      // *will* reset the neural network
+    // ~mlp_classifier.activation_(FluidMLPClassifier.tanh); // *will* reset the neural network
 };
 )
