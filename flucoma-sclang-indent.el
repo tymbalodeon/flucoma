@@ -2,7 +2,7 @@
   (beginning-of-line)
   (point))
 
-(defun flucoma--increment-by-sclang-indent-level (value)
+(defun flucoma--increase-indent-level (value)
   (+ value sclang-indent-level))
 
 (defun flucoma--position-after-indentation (points-to-end)
@@ -20,12 +20,15 @@
     (skip-chars-forward " \t")
     (when (looking-at "\\.")
       (progn (setq indent
-                   (flucoma--increment-by-sclang-indent-level indent))
+                   (flucoma--increase-indent-level indent))
              (setq points-shifted
-                   (flucoma--increment-by-sclang-indent-level points-shifted))))
+                   (flucoma--increase-indent-level points-shifted))))
     (if (zerop points-shifted)
         (flucoma--position-after-indentation points-to-end)
       (delete-region beginning-of-line-point (point))
       (indent-to indent)
       (flucoma--position-after-indentation points-to-end))
     points-shifted))
+
+(provide 'flucoma-sclang-indent)
+;;; flucoma-sclang-indent.el ends here
