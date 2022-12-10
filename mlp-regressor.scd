@@ -23,14 +23,14 @@
     };
     ~set_synth_buffer.();
     MultiSliderView(~window, bounds)
-    .elasticMode_(1)
-    .isFilled_(1)
-    .background_(~highlight_background)
-    .colors_(~foreground)
-    .fillColor_(~foreground)
-    .indexThumbSize_(50)
-    .action_(set_synth_slider_values)
-    .value_(0.5.dup(~number_of_synth_parameters));
+        .elasticMode_(1)
+        .isFilled_(1)
+        .background_(~highlight_background)
+        .colors_(~foreground)
+        .fillColor_(~foreground)
+        .indexThumbSize_(50)
+        .action_(set_synth_slider_values)
+        .value_(0.5.dup(~number_of_synth_parameters));
 };
 
 ~set_x_y_buffer = {
@@ -49,9 +49,9 @@
     };
     ~set_x_y_buffer.();
     ~slider = Slider2D(~window, bounds)
-    .action_(set_x_y_values)
-    .background_(~highlight_background)
-    .knobColor_(~background);
+        .action_(set_x_y_values)
+        .background_(~highlight_background)
+        .knobColor_(~background);
 };
 
 ~round_to_one_decimal = {
@@ -261,8 +261,8 @@
     MoogFF.ar(
         osc,
         (base_3 - (value[index_4] * (loudness.clip(-120, 0) + 120)))
-        .lag(128 / 44100)
-        .midicps,
+            .lag(128 / 44100)
+            .midicps,
         value[index_5] * 3.5);
 };
 
@@ -492,8 +492,8 @@
     var width = 150;
     var height = 30;
     ~window = Window("MLP Regressor")
-    .background_(~background)
-    .front;
+        .background_(~background)
+        .front;
     ~x_y_slider = ~set_x_y_slider.(Rect(10, 10, 310, 310));
     ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
     ~set_add_points_button.(Rect(740, 10, width, height));

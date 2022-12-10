@@ -102,11 +102,11 @@
 ~set_learn_rate_button = {
     arg bounds;
     Slider(~window, bounds)
-    .orientation_(\vertical)
-    .action_ {
-        arg slider;
-        ~mlp_classifier.learnRate_(slider.value);
-    };
+        .orientation_(\vertical)
+        .action_ {
+            arg slider;
+            ~mlp_classifier.learnRate_(slider.value);
+        };
 };
 
 ~get_window = {
