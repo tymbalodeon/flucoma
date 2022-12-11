@@ -1,11 +1,21 @@
+;;; flucoma-sclang-indent.el --- custom indentation for sclang-mode
+;;; Commentary:
+;;
+;; Modifies `sclang-indent-line' to indent chained methods an extra level.
+;;
+;;; Code:
+
 (defun flucoma--beginning-of-line-point ()
+  "Return the value of point at the beginning of the line."
   (beginning-of-line)
   (point))
 
 (defun flucoma--indent (value)
+  "Increase VALUE by `sclang-indent-level'."
   (+ value sclang-indent-level))
 
-(defun flucoma--position-after-indentation (points-from-end)
+(defun flucoma--goto-indentation (points-from-end)
+  "Go to the first character in the newly indented line."
   (let ((current-points-from-end (- (point-max) points-from-end)))
     (when (> current-points-from-end (point))
       (goto-char current-points-from-end))))
@@ -26,7 +36,7 @@
     (when (not (zerop points-to-shift))
       (delete-region beginning-of-line-point (point))
       (indent-to indent))
-    (flucoma--position-after-indentation points-from-end)
+    (flucoma--goto-indentation points-from-end)
     points-to-shift))
 
 (provide 'flucoma-sclang-indent)

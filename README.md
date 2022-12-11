@@ -7,7 +7,7 @@ Tutorials from [FluCoMa](https://www.flucoma.org/), reformatted and expanded.
 ### Chained methods
 
 Chained methods that start on new lines should be indented one level more than
-the previous line.
+the line containing the object on which they are called.
 
 #### Emacs
 
