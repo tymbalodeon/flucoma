@@ -193,6 +193,7 @@ s.waitForBoot {
     "post.scd".load;
     "themes.scd".load;
     ~reset.();
+    ~load_theme.(\gruvbox);
     ~file_names = [
         "Olencki-TenTromboneLongTones-M.wav",
         "Harker-DS-TenOboeMultiphonics-M.wav"
