@@ -491,9 +491,7 @@
 ~set_window_items = {
     var width = 150;
     var height = 30;
-    ~window = Window("MLP Regressor")
-        .background_(~background)
-        .front;
+    ~window = ~get_window.("MLP Regressor");
     ~x_y_slider = ~set_x_y_slider.(Rect(10, 10, 310, 310));
     ~synth_slider = ~get_synth_slider.(Rect(330, 10, 400, 310));
     ~set_add_points_button.(Rect(740, 10, width, height));

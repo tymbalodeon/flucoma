@@ -16,6 +16,11 @@
     };
 };
 
+~get_window = {
+    arg name;
+    Window(name).background_(~background).front;
+};
+
 ~set_button = {
     arg bounds, states, action;
     states.do {
