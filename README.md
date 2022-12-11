@@ -15,7 +15,7 @@ In order to auto-format chained methods correctly, [sclang-mode](https://github.
 `sclang-indent-line` function can be monkeypatched with [flucoma-sclang-indent.el](flucoma-sclang-indent.el "flucoma-sclang-indent.el")
 
 Assuming you already have `sclang-mode` installed, add the following to your
-emacs configuration:
+emacs configuration AFTER your call to `(require 'sclang)`:
 
 ```emacs-lisp
 (add-to-list 'load-path "<path/to>/flucoma")
