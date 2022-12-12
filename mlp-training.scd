@@ -176,6 +176,26 @@
     ~set_ez_slider.(bounds, "Momentum", action, control_spec);
 };
 
+~set_hidden_layers_button = {
+    arg bounds;
+    var action = {
+        arg slider;
+        ~mlp_classifier.hiddenLayers_([slider.value]);
+    };
+    var control_spec = ControlSpec(minval: 1, maxval: 50);
+    ~set_ez_slider.(bounds, "Hidden Layers", action, control_spec);
+};
+
+~set_activation_button = {
+    arg bounds;
+    var action = {
+        arg slider;
+        ~mlp_classifier.activation_(FluidMLPClassifier.tanh);
+    };
+    var control_spec = ControlSpec(minval: 1, maxval: 4, step: 1);
+    ~set_ez_slider.(bounds, "Activation", action, control_spec);
+};
+
 ~set_window_items = {
     ~window = ~get_window.("MLP Training");
     ~set_train_button.(Rect(10, 10, 150, 30));
@@ -185,6 +205,8 @@
     ~set_max_iter_button.(Rect(170, 50, 70, 200));
     ~set_validation_button.(Rect(250, 50, 70, 200));
     ~set_momentum_button.(Rect(330, 50, 70, 200));
+    ~set_hidden_layers_button.(Rect(10, 260, 70, 200));
+    ~set_activation_button.(Rect(90, 260, 70, 200));
 };
 
 s.waitForBoot {
@@ -209,8 +231,5 @@ s.waitForBoot {
     ~point = Buffer();
     ~get_points.();
     ~set_window_items.();
-
-    // ~mlp_classifier.hiddenLayers_([2]);      // *will* reset the neural network
-    // ~mlp_classifier.activation_(FluidMLPClassifier.tanh); // *will* reset the neural network
 };
 )
