@@ -216,6 +216,8 @@
     ).setColors(
         stringBackground: ~text_background,
         stringColor: ~text,
+        menuBackground: ~text_background,
+        menuStringColor: ~text
     );
 };
 
