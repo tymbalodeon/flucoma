@@ -14,9 +14,9 @@
   "Increase VALUE by `sclang-indent-level'."
   (+ value sclang-indent-level))
 
-(defun flucoma--goto-indentation (points-from-end)
-  "Go to the first character in the newly indented line."
-  (let ((current-points-from-end (- (point-max) points-from-end)))
+(defun flucoma--goto-indentation (original-points-from-end)
+  "Go to ORIGINAL-POINTS-FROM-END if greater than point."
+  (let ((current-points-from-end (- (point-max) original-points-from-end)))
     (when (> current-points-from-end (point))
       (goto-char current-points-from-end))))
 
@@ -25,7 +25,7 @@
   (let* ((beginning-of-line-point (flucoma--beginning-of-line-point))
          (indent (calculate-sclang-indent))
          (points-to-shift (- indent (current-column)))
-         (points-from-end (- (point-max) (point)))
+         (original-points-from-end (- (point-max) (point)))
          (case-fold-search nil))
     (skip-chars-forward " \t")
     (when (looking-at "\\.")
@@ -36,7 +36,7 @@
     (when (not (zerop points-to-shift))
       (delete-region beginning-of-line-point (point))
       (indent-to indent))
-    (flucoma--goto-indentation points-from-end)
+    (flucoma--goto-indentation original-points-from-end)
     points-to-shift))
 
 (provide 'flucoma-sclang-indent)
