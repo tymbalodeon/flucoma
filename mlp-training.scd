@@ -191,7 +191,7 @@
         arg slider;
         ~mlp_classifier.hiddenLayers_([slider.value]);
     };
-    var control_spec = ControlSpec(minval: 1, maxval: 50);
+    var control_spec = ControlSpec(minval: 1, maxval: 50, step: 1);
     ~set_ez_slider.(bounds, "Hidden Layers", action, control_spec);
 };
 
@@ -207,10 +207,10 @@
         bounds: bounds,
         label: "Activation",
         items: [
-            FluidMLPClassifier.identity,
-            FluidMLPClassifier.sigmoid,
-            FluidMLPClassifier.relu,
-            FluidMLPClassifier.tanh
+            \identity -> FluidMLPClassifier.identity,
+            \sigmoid -> FluidMLPClassifier.sigmoid,
+            \relu -> FluidMLPClassifier.relu,
+            \tanh -> FluidMLPClassifier.tanh
         ],
         layout: \vert
     ).setColors(
@@ -230,7 +230,7 @@
         ~set_validation_button.(Rect(250, 50, 70, 200));
         ~set_momentum_button.(Rect(330, 50, 70, 200));
         ~set_hidden_layers_button.(Rect(10, 260, 90, 200));
-        ~set_activation_button.(Rect(110, 260, 90, 200));
+        ~set_activation_button.(Rect(110, 260, 90, 50));
     };
 
     s.waitForBoot {
