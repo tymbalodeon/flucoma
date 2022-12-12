@@ -217,8 +217,8 @@
     ~set_max_iter_button.(Rect(170, 50, 70, 200));
     ~set_validation_button.(Rect(250, 50, 70, 200));
     ~set_momentum_button.(Rect(330, 50, 70, 200));
-    ~set_hidden_layers_button.(Rect(10, 260, 70, 200));
-    ~set_activation_button.(Rect(90, 260, 70, 200));
+    ~set_hidden_layers_button.(Rect(10, 260, 90, 200));
+    ~set_activation_button.(Rect(110, 260, 90, 200));
 };
 
 s.waitForBoot {
