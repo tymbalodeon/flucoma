@@ -221,43 +221,43 @@
     );
 };
 
-    ~set_window_items = {
-        ~window = ~get_window.("MLP Training");
-        ~set_train_button.(Rect(10, 10, 150, 30));
-        ~set_reset_button.(Rect(170, 10, 150, 30));
-        ~set_plot_points_button.(Rect(330, 10, 150, 30));
-        ~set_learn_rate_button.(Rect(10, 50, 70, 200));
-        ~set_batch_size_button.(Rect(90, 50, 70, 200));
-        ~set_max_iter_button.(Rect(170, 50, 70, 200));
-        ~set_validation_button.(Rect(250, 50, 70, 200));
-        ~set_momentum_button.(Rect(330, 50, 70, 200));
-        ~set_hidden_layers_button.(Rect(10, 260, 90, 200));
-        ~set_activation_button.(Rect(110, 260, 90, 50));
-    };
+~set_window_items = {
+    ~window = ~get_window.("MLP Training");
+    ~set_train_button.(Rect(10, 10, 150, 30));
+    ~set_reset_button.(Rect(170, 10, 150, 30));
+    ~set_plot_points_button.(Rect(330, 10, 150, 30));
+    ~set_learn_rate_button.(Rect(10, 50, 70, 200));
+    ~set_batch_size_button.(Rect(90, 50, 70, 200));
+    ~set_max_iter_button.(Rect(170, 50, 70, 200));
+    ~set_validation_button.(Rect(250, 50, 70, 200));
+    ~set_momentum_button.(Rect(330, 50, 70, 200));
+    ~set_hidden_layers_button.(Rect(10, 260, 90, 200));
+    ~set_activation_button.(Rect(110, 260, 90, 50));
+};
 
-    s.waitForBoot {
-        "audio_file.scd".load;
-        "gui.scd".load;
-        "post.scd".load;
-        "themes.scd".load;
-        ~reset.();
-        ~load_theme.(\gruvbox);
-        ~text_background = ~background;
-        ~text = ~foreground;
-        ~file_names = [
-            "Olencki-TenTromboneLongTones-M.wav",
-            "Harker-DS-TenOboeMultiphonics-M.wav"
-        ];
-        ~audio_files = ~get_audio_files.(
-            ~file_names,
-            start_frame: 27402,
-            num_frames: 257199
-        );
-        ~data = FluidDataSet();
-        ~labels = FluidLabelSet();
-        ~pitch_features = Buffer();
-        ~point = Buffer();
-        ~get_points.();
-        ~set_window_items.();
-    };
+s.waitForBoot {
+    "audio_file.scd".load;
+    "gui.scd".load;
+    "post.scd".load;
+    "themes.scd".load;
+    ~reset.();
+    ~load_theme.(\gruvbox);
+    ~text_background = ~background;
+    ~text = ~foreground;
+    ~file_names = [
+        "Olencki-TenTromboneLongTones-M.wav",
+        "Harker-DS-TenOboeMultiphonics-M.wav"
+    ];
+    ~audio_files = ~get_audio_files.(
+        ~file_names,
+        start_frame: 27402,
+        num_frames: 257199
+    );
+    ~data = FluidDataSet();
+    ~labels = FluidLabelSet();
+    ~pitch_features = Buffer();
+    ~point = Buffer();
+    ~get_points.();
+    ~set_window_items.();
+};
 )
