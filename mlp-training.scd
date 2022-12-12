@@ -95,9 +95,20 @@
     ~set_button.(bounds, states, action);
 };
 
+~set_reset_button = {
+    arg bounds;
+    var states = [["Reset", ~background, ~yellow]];
+    var action = {
+        arg button;
+        ~get_mlp_classifier.();
+        "Reset MLP Classifier to default.".postln;
+    };
+    ~set_button.(bounds, states, action);
+};
+
 ~set_plot_points_button = {
     arg bounds;
-    var states = [["Plot Points"]];
+    var states = [["Plot Points", ~foreground, ~gray]];
     var action = {
         arg button;
         ~plot_points.();
@@ -199,7 +210,8 @@
 ~set_window_items = {
     ~window = ~get_window.("MLP Training");
     ~set_train_button.(Rect(10, 10, 150, 30));
-    ~set_plot_points_button.(Rect(170, 10, 150, 30));
+    ~set_reset_button.(Rect(170, 10, 150, 30));
+    ~set_plot_points_button.(Rect(330, 10, 150, 30));
     ~set_learn_rate_button.(Rect(10, 50, 70, 200));
     ~set_batch_size_button.(Rect(90, 50, 70, 200));
     ~set_max_iter_button.(Rect(170, 50, 70, 200));
