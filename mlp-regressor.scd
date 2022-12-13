@@ -496,7 +496,14 @@
         if (~distributions_window != nil) {
             ~distributions_window.close;
         };
-        ~display_distributions.(~synth_data);
+        if (~synth_data != nil) {
+            ~synth_data.size {
+                arg size;
+                if (size > 0) {
+                    ~display_distributions.(~synth_data);
+                };
+            };
+        };
     };
     ~set_button.(bounds, states, action);
 };
