@@ -18,7 +18,7 @@
 
 ~get_window = {
     arg name;
-    Window(name).background_(~background).front;
+    Window(name, scroll: true).background_(~background).front;
 };
 
 ~set_button = {

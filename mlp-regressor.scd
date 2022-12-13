@@ -488,6 +488,19 @@
     ~set_button.(bounds, states, ~exit);
 };
 
+~set_display_distributions_button = {
+    arg bounds;
+    var states = [["Display Distributions", ~foreground, ~gray]];
+    var action = {
+        arg button;
+        if (~distributions_window != nil) {
+            ~distributions_window.close;
+        };
+        ~display_distributions.(~synth_data);
+    };
+    ~set_button.(bounds, states, action);
+};
+
 ~set_window_items = {
     var width = 150;
     var height = 30;
@@ -510,6 +523,7 @@
     ~set_random_values_button.(Rect(330, 330, width, height));
     ~set_random_association_button.(Rect(740, 330, width, height));
     ~set_close_button.(Rect(1060, 290, width, height));
+    ~set_display_distributions_button.(Rect(900, 50, width, height));
     ~set_params_changed_action.();
 };
 
@@ -540,6 +554,8 @@ s.waitForBoot {
     "gui.scd".load;
     "post.scd".load;
     "themes.scd".load;
+    "distribution-and-histograms.scd".load;
+    ~reset.();
     ~load_theme.(theme: \gruvbox);
     ~launch.();
     ~mlp_regressor = ~get_mlp_regressor.();
